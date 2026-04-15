@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEURAL LENS | V15</title>
+    <title>NEURAL LENS | V17</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
@@ -23,7 +23,6 @@
 
         #viewport { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 
-        /* 初始巨型标题 */
         .landing-container {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             text-align: center; z-index: 30; transition: var(--transition);
@@ -39,13 +38,11 @@
         }
         .landing-container.active .pixel-title { font-size: 16px; margin-bottom: 0; letter-spacing: 2px; }
 
-        /* 修复后的按钮尺寸 */
         #initBtn {
             font-size: 16px; padding: 18px 40px; letter-spacing: 3px; 
             border-width: 2px; box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
         }
 
-        /* 侧边面板 */
         .glass-panel {
             position: fixed; top: 30px; left: 30px; bottom: 30px; width: var(--panel-w);
             background: var(--ui-bg); backdrop-filter: blur(30px);
@@ -83,12 +80,10 @@
         .dl-btn { font-size: 9px; padding: 10px 0; border: 1px solid rgba(0,242,255,0.2); background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; border-radius: 4px; transition: 0.2s;}
         .dl-btn:hover { background: var(--accent); color: #000; }
 
-        /* 回归脉冲加载动画 */
         .loader-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; }
         .pulse-loader { width: 50px; height: 50px; border: 2px solid var(--accent); border-radius: 50%; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(2.2); opacity: 0; } }
 
-        /* 导出弹窗 */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); z-index: 200; display: none;
@@ -151,20 +146,20 @@
                 <div class="label-box"><span>Glyph Mode</span></div>
                 <select id="glyphMode" class="input-field">
                     <option value="none">Point Cloud</option>
-                    <option value="custom">Custom Glyph</option>
+                    <option value="custom">Custom Glyph (1-5 Chars)</option>
                     <option value="random">Glitch Matrix</option>
                 </select>
-                <input type="text" id="glyphInput" class="input-field" style="margin-top:8px; display:none;" placeholder="Enter character" maxlength="1">
+                <input type="text" id="glyphInput" class="input-field" style="margin-top:8px; display:none;" placeholder="Enter up to 5 chars" maxlength="5">
             </div>
 
             <div class="control-group">
                 <div class="label-box"><span>Point Size</span><span id="v-psize">3.0</span></div>
-                <input type="range" id="psizeRange" min="0.5" max="50" step="0.5" value="3.0">
+                <input type="range" id="psizeRange" min="0.5" max="150" step="0.5" value="3.0">
             </div>
 
             <div class="control-group">
-                <div class="label-box"><span>Sampling Stride</span><span id="v-stride">4</span></div>
-                <input type="range" id="strideRange" min="2" max="24" value="4">
+                <div class="label-box"><span>Sampling Stride (Distance)</span><span id="v-stride">4</span></div>
+                <input type="range" id="strideRange" min="2" max="50" value="4">
             </div>
 
             <div class="control-group">
@@ -178,8 +173,8 @@
             </div>
 
             <div class="control-group">
-                <div class="label-box"><span>Camera Distance</span><span id="v-zoom">1000</span></div>
-                <input type="range" id="zoomRange" min="200" max="4000" value="1000">
+                <div class="label-box"><span>Zoom / Magnify</span><span id="v-zoom">3200</span></div>
+                <input type="range" id="zoomRange" min="200" max="4000" value="3200">
             </div>
 
             <div class="control-group">
@@ -237,18 +232,21 @@
         uniform bool uUseMap;
         uniform bool uIsRandom;
         uniform float uTime;
+        uniform float uCharCount;
 
         void main() {
             vec4 texColor = vec4(1.0);
             if(uUseMap) {
                 vec2 uv = gl_PointCoord;
-                if(uIsRandom) {
-                    float grid = 8.0; 
-                    float idx = floor(vRandomIdx + uTime * 0.002);
-                    float tx = mod(idx, grid) / grid;
-                    float ty = floor(idx / grid) / grid;
-                    uv = (gl_PointCoord / grid) + vec2(tx, ty);
-                }
+                float grid = 8.0; 
+                // 核心修复：根据当前模式决定随机字符的循环上限
+                float limit = uIsRandom ? 64.0 : uCharCount;
+                float idx = mod(floor(vRandomIdx + (uIsRandom ? uTime * 0.002 : 0.0)), limit);
+                
+                float tx = mod(idx, grid) / grid;
+                float ty = floor(idx / grid) / grid;
+                uv = (gl_PointCoord / grid) + vec2(tx, ty);
+                
                 texColor = texture2D(uMap, uv);
                 if(texColor.a < 0.1) discard;
             } else {
@@ -268,64 +266,48 @@
 
         env.allowLocalModels = false;
         let scene, camera, renderer, controls, points, starfield;
-        let depthEstimator, atlasTexture, currentTexture;
+        let depthEstimator, atlasTexture, customAtlasTexture;
+        let customCharCount = 1;
         
-        // 核心修复：引入缓存机制，彻底解决滑块崩溃和图像消失问题
         let cachedData = { pixels: null, depth: null, minZ: 0, maxZ: 0, width: 0, height: 0 };
         const clock = new THREE.Clock();
 
         window.openExportModal = () => document.getElementById('exportModal').classList.add('show');
-        window.closeExportModal = () => document.getElementById('exportModal').classList.remove('show');
+        window.closeExportModal = () => document.getElementById('exportModal').classList.remove('remove');
 
         window.exportFile = async (format) => {
             const baseName = document.getElementById('fileName').value || 'NEURAL_LENS_RECON';
-            if(format === 'gif') {
-                recordGIF(baseName);
-                return;
-            }
+            if(format === 'gif') { recordGIF(baseName); return; }
             renderer.render(scene, camera);
             const link = document.createElement('a');
             link.download = `${baseName}.${format}`;
             link.href = renderer.domElement.toDataURL(`image/${format === 'png' ? 'png' : 'jpeg'}`, 0.9);
             link.click();
-            closeExportModal();
+            document.getElementById('exportModal').classList.remove('show');
         };
 
-        // 真实的 GIF 生成逻辑
         async function recordGIF(name) {
-            closeExportModal();
+            document.getElementById('exportModal').classList.remove('show');
             document.getElementById('loader').style.display = 'flex';
             const loaderTxt = document.getElementById('loaderText');
             loaderTxt.innerText = 'INITIALIZING_GIF_ENGINE...';
-
             let workerUrl;
             try {
-                // 利用 Blob 规避 Worker 的跨域拦截
                 const workerBlob = await fetch('https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js').then(r => r.blob());
                 workerUrl = URL.createObjectURL(workerBlob);
-            } catch(e) {
-                workerUrl = 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js';
-            }
+            } catch(e) { workerUrl = 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js'; }
 
-            const gif = new GIF({
-                workers: 2, quality: 10, workerScript: workerUrl,
-                width: window.innerWidth, height: window.innerHeight
-            });
-
-            let count = 0;
-            const maxFrames = 30; // 10 fps * 3s
-            
+            const gif = new GIF({ workers: 2, quality: 10, workerScript: workerUrl, width: renderer.domElement.width, height: renderer.domElement.height });
+            let count = 0; const maxFrames = 30;
             const capture = setInterval(() => {
                 renderer.render(scene, camera);
                 gif.addFrame(renderer.domElement, {copy: true, delay: 100});
                 count++;
-                loaderTxt.innerText = `RECORDING: ${Math.round((count/maxFrames)*100)}% \n PLEASE DO NOT MOVE CAMERA`;
-                
+                loaderTxt.innerText = `RECORDING: ${Math.round((count/maxFrames)*100)}%`;
                 if(count >= maxFrames) {
                     clearInterval(capture);
-                    loaderTxt.innerText = 'ENCODING_GIF... THIS MAY TAKE A MOMENT';
-                    
-                    gif.on('finished', function(blob) {
+                    loaderTxt.innerText = 'ENCODING_GIF...';
+                    gif.on('finished', (blob) => {
                         const link = document.createElement('a');
                         link.download = `${name}.gif`;
                         link.href = URL.createObjectURL(blob);
@@ -340,7 +322,7 @@
         async function init() {
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
-            camera.position.set(600, 400, 1500); 
+            camera.position.set(0, 0, 1000); 
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -364,7 +346,8 @@
             const ctx = canvas.getContext('2d');
             ctx.fillStyle = 'white'; ctx.font = 'bold 50px monospace';
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<>[]{}#@$*&";
+            // 扩充符号库
+            const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<>[]{}#@$*&!?%:=+-_^/()*";
             for(let i=0; i<64; i++) {
                 const x = (i % 8) * 64 + 32;
                 const y = Math.floor(i / 8) * 64 + 32;
@@ -375,8 +358,7 @@
         }
 
         function createAmbientStars() {
-            const count = 15000; 
-            const geo = new THREE.BufferGeometry();
+            const count = 15000; const geo = new THREE.BufferGeometry();
             const pos = new Float32Array(count * 3);
             for(let i=0; i<count; i++){
                 pos[i*3]=(Math.random()-0.5)*8000;
@@ -390,11 +372,8 @@
 
         function bindUI() {
             const handleUpload = async (e) => {
-                const file = e.target.files[0];
-                if(!file) return;
+                const file = e.target.files[0]; if(!file) return;
                 document.getElementById('loader').style.display = 'flex';
-                document.getElementById('loaderText').innerText = 'ANALYZING_TOPOLOGY...';
-                
                 const reader = new FileReader();
                 reader.onload = async (ev) => {
                     const result = await depthEstimator(ev.target.result);
@@ -402,28 +381,21 @@
                     const img = new Image();
                     img.src = ev.target.result;
                     img.onload = () => {
-                        // 全局数据提取与缓存
-                        const width = depthInfo.width;
-                        const height = depthInfo.height;
-                        const canv = document.createElement('canvas'); 
-                        canv.width = width; canv.height = height;
-                        const ctx = canv.getContext('2d'); 
-                        ctx.drawImage(img, 0, 0, width, height);
-                        
+                        const width = depthInfo.width, height = depthInfo.height;
+                        const canv = document.createElement('canvas'); canv.width = width; canv.height = height;
+                        const ctx = canv.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
                         let minZ = Infinity, maxZ = -Infinity;
-                        for(let v of depthInfo.data) {
-                            if(v < minZ) minZ = v;
-                            if(v > maxZ) maxZ = v;
-                        }
-
-                        cachedData = {
-                            pixels: ctx.getImageData(0, 0, width, height).data,
-                            depth: depthInfo.data,
-                            width: width, height: height, minZ: minZ, maxZ: maxZ
-                        };
-
+                        for(let v of depthInfo.data) { if(v < minZ) minZ = v; if(v > maxZ) maxZ = v; }
+                        cachedData = { pixels: ctx.getImageData(0, 0, width, height).data, depth: depthInfo.data, width, height, minZ, maxZ };
+                        
                         renderTopology();
                         
+                        // 初始视角归位
+                        const zoomVal = parseFloat(document.getElementById('zoomRange').value);
+                        camera.position.set(0, 0, 4200 - zoomVal);
+                        controls.target.set(0, 0, 0);
+                        controls.update();
+
                         document.getElementById('landing').classList.add('active');
                         document.getElementById('panel').classList.add('show');
                         document.getElementById('openUI').style.display = 'flex';
@@ -445,7 +417,10 @@
                     document.getElementById('v-'+id.split('R')[0]).innerText = e.target.value;
                     if(id === 'strideRange' || id === 'diffuseRange') renderTopology();
                     else if(id === 'psizeRange' && points) points.material.uniforms.uPointSize.value = parseFloat(e.target.value);
-                    else if(id === 'zoomRange') camera.position.setLength(e.target.value);
+                    else if(id === 'zoomRange') {
+                        // 核心逻辑反转：4200-value，value越大，距离越近(Zoom In)
+                        camera.position.setLength(4200 - parseFloat(e.target.value));
+                    }
                     else if(id === 'depthRange' && points) points.scale.z = e.target.value / 200;
                 };
             });
@@ -455,14 +430,24 @@
                 renderTopology(); 
             };
 
-            document.getElementById('glyphInput').oninput = () => {
-                const char = document.getElementById('glyphInput').value.trim();
-                if(!char) return;
-                const canv = document.createElement('canvas'); canv.width = 128; canv.height = 128;
-                const ctx = canv.getContext('2d'); ctx.fillStyle='white'; ctx.font='bold 90px monospace';
-                ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(char, 64, 64);
-                currentTexture = new THREE.CanvasTexture(canv);
-                currentTexture.flipY = false;
+            document.getElementById('glyphInput').oninput = (e) => {
+                const chars = e.target.value.trim().split('');
+                if(chars.length === 0) return;
+                customCharCount = chars.length;
+                
+                const canv = document.createElement('canvas');
+                canv.width = 512; canv.height = 512;
+                const ctx = canv.getContext('2d');
+                ctx.fillStyle = 'white'; ctx.font = 'bold 64px monospace';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                
+                chars.forEach((c, i) => {
+                    const x = (i % 8) * 64 + 32;
+                    const y = Math.floor(i / 8) * 64 + 32;
+                    ctx.fillText(c, x, y);
+                });
+                customAtlasTexture = new THREE.CanvasTexture(canv);
+                customAtlasTexture.flipY = false;
                 renderTopology();
             };
 
@@ -477,14 +462,11 @@
         function renderTopology() {
             if(!cachedData.pixels) return;
             const { pixels, depth, width, height, minZ, maxZ } = cachedData;
-            
             const stride = parseInt(document.getElementById('strideRange').value);
             const diffStr = parseFloat(document.getElementById('diffuseRange').value);
             const zInten = parseFloat(document.getElementById('depthRange').value);
-            
             const pos = [], col = [], rnd = [];
-            const cx = width/2, cy = height/2;
-            const border = Math.max(width, height) * 0.5;
+            const cx = width/2, cy = height/2, border = Math.max(width, height) * 0.5;
             const mode = document.getElementById('glyphMode').value;
 
             for (let y = 0; y < height; y += stride) {
@@ -492,11 +474,11 @@
                     const idx = y * width + x;
                     const d = Math.max(Math.abs(x - cx)/border, Math.abs(y - cy)/border);
                     if(Math.random() < d * diffStr * 1.5) continue;
-
                     const nz = (depth[idx] - minZ) / (maxZ - minZ || 1);
                     pos.push(x - cx, cy - y, nz * zInten);
                     col.push(pixels[idx*4]/255, pixels[idx*4+1]/255, pixels[idx*4+2]/255);
-                    rnd.push(Math.floor(Math.random() * 64));
+                    // 随机字符索引
+                    rnd.push(Math.floor(Math.random() * (mode === 'random' ? 64 : customCharCount)));
                 }
             }
 
@@ -510,9 +492,10 @@
                 uniforms: {
                     uTime: { value: 0 },
                     uPointSize: { value: parseFloat(document.getElementById('psizeRange').value) },
-                    uMap: { value: (mode === 'random' ? atlasTexture : currentTexture) },
+                    uMap: { value: (mode === 'random' ? atlasTexture : customAtlasTexture) },
                     uUseMap: { value: (mode !== 'none') },
-                    uIsRandom: { value: (mode === 'random') }
+                    uIsRandom: { value: (mode === 'random') },
+                    uCharCount: { value: customCharCount }
                 },
                 vertexShader: document.getElementById('vertexShader').textContent,
                 fragmentShader: document.getElementById('fragmentShader').textContent,
@@ -522,7 +505,12 @@
             if(points) scene.remove(points);
             if(starfield) starfield.visible = false;
             points = new THREE.Points(geo, mat);
-            const s = 850 / Math.max(width, height);
+            
+            // 自动缩放自适应
+            const zDist = camera.position.length() || 1000;
+            const vFov = camera.fov * Math.PI / 180;
+            const visibleHeight = 2 * Math.tan(vFov / 2) * zDist;
+            const s = (visibleHeight * 0.75) / Math.max(width, height);
             points.scale.set(s, s, s);
             scene.add(points);
         }
@@ -530,9 +518,7 @@
         function animate() {
             requestAnimationFrame(animate);
             const t = clock.getElapsedTime();
-            if(starfield && starfield.visible) {
-                starfield.rotation.y += 0.001;
-            }
+            if(starfield && starfield.visible) starfield.rotation.y += 0.001;
             if(points) points.material.uniforms.uTime.value = t * 1000;
             controls.update();
             renderer.render(scene, camera);
