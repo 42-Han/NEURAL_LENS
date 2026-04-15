@@ -193,7 +193,7 @@
             "imports": {
                 "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
                 "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
-                "@xenova/transformers": "https://cdn.jsdelivr.net/npm/@xenova/transformers@2.15.0"
+                "@huggingface/transformers": "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.0"
             }
         }
     </script>
@@ -255,9 +255,12 @@
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { pipeline, env } from '@xenova/transformers';
+        import { pipeline, env } from '@huggingface/transformers';
 
         env.allowLocalModels = false;
+        env.useBrowserCache = true;
+        // 使用官方源（浏览器缓存会自动生效）
+        
         let scene, camera, renderer, controls, points, starfield;
         let depthEstimator, atlasTexture, customAtlasTexture;
         let customCharCount = 1;
