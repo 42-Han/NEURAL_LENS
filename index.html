@@ -259,7 +259,8 @@
 
         env.allowLocalModels = false;
         env.useBrowserCache = true;
-        // 使用官方源（浏览器缓存会自动生效）
+        // 使用 Hugging Face 国内镜像
+        env.remoteHost = 'https://hf-mirror.com';
         
         let scene, camera, renderer, controls, points, starfield;
         let depthEstimator, atlasTexture, customAtlasTexture;
