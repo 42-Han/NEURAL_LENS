@@ -257,40 +257,9 @@
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { pipeline, env } from '@huggingface/transformers';
+        import { pipeline, env } from '@xenova/transformers';
 
         env.allowLocalModels = false;
-        env.useBrowserCache = true;
-        
-        // 自动检测可用的模型源
-        async function setupModelHost() {
-            const mirrors = [
-                'https://hf-mirror.com',
-                'https://hf-cdn.sufy.com',
-                'https://huggingface.co'
-            ];
-            
-            for (const mirror of mirrors) {
-                try {
-                    console.log(`Testing mirror: ${mirror}`);
-                    const testUrl = `${mirror}/Xenova/depth-anything-small-hf/resolve/main/config.json`;
-                    const response = await fetch(testUrl, { method: 'HEAD', timeout: 5000 });
-                    if (response.ok || response.type === 'opaque') {
-                        console.log(`Using mirror: ${mirror}`);
-                        env.remoteHost = mirror;
-                        return mirror;
-                    }
-                } catch (e) {
-                    console.log(`Mirror failed: ${mirror}`, e.message);
-                }
-            }
-            
-            // 默认使用官方源
-            console.log('Using official source: https://huggingface.co');
-            env.remoteHost = 'https://huggingface.co';
-            return 'https://huggingface.co';
-        }
-        
         let scene, camera, renderer, controls, points, starfield;
         let depthEstimator, atlasTexture, customAtlasTexture;
         let customCharCount = 1;
@@ -363,9 +332,6 @@
             createAtlas();
             animate();
 
-            // 设置模型源
-            await setupModelHost();
-            
             depthEstimator = await pipeline('depth-estimation', 'Xenova/depth-anything-small-hf');
             bindUI();
             setupIdleTimer();
