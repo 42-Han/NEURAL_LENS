@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEURAL LENS | V18</title>
+    <title>NEURAL LENS | V20</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
@@ -60,6 +60,7 @@
             position: fixed; top: 50%; left: 0; width: 30px; height: 100px;
             transform: translateY(-50%); z-index: 25; cursor: pointer; display: none;
             align-items: center; justify-content: center;
+            transition: opacity 0.3s;
         }
         .trigger-line { width: 3px; height: 40px; background: var(--accent); box-shadow: 0 0 15px var(--accent); border-radius: 2px; }
 
@@ -77,10 +78,13 @@
         .action-btn { background: transparent; border: 1px solid var(--ui-border); color: #fff; padding: 10px; font-size: 10px; cursor: pointer; border-radius: 4px; transition: 0.2s; text-transform: uppercase; text-align: center; }
         .action-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
         .action-btn.primary { border-color: var(--accent); color: var(--accent); font-weight: bold; }
-        /* 首页按钮和导出按钮的悬停样式 */
         #initBtn:hover, #panel .action-btn.primary:hover { background: var(--accent); color: #000; border-color: var(--accent); }
         .dl-btn { font-size: 9px; padding: 10px 0; border: 1px solid rgba(0,242,255,0.2); background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; border-radius: 4px; transition: 0.2s;}
         .dl-btn:hover { background: var(--accent); color: #000; }
+
+        /* 修复悬停字体颜色的独立录制按钮 */
+        #recordBtn { border: 2px solid #00ffaa; color: #00ffaa; font-weight: bold; width: 100%; margin-top: 8px; background: transparent; transition: 0.3s; }
+        #recordBtn:hover { background: #00ffaa; color: #000; }
 
         .loader-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; }
         .pulse-loader { width: 50px; height: 50px; border: 2px solid var(--accent); border-radius: 50%; animation: pulse 1.5s infinite; }
@@ -93,9 +97,11 @@
             opacity: 0; transition: opacity 0.3s;
         }
         .modal-overlay.show { display: flex; opacity: 1; }
-        .modal-box { background: var(--ui-bg); border: 1px solid var(--ui-border); padding: 35px 30px; border-radius: 12px; width: 320px; box-sizing: border-box; box-shadow: 0 20px 60px rgba(0,0,0,0.9); }
+        .modal-box { background: var(--ui-bg); border: 1px solid var(--ui-border); padding: 35px 30px; border-radius: 12px; width: 340px; box-sizing: border-box; box-shadow: 0 20px 60px rgba(0,0,0,0.9); }
         .modal-title { font-size: 14px; color: var(--accent); margin-bottom: 25px; letter-spacing: 3px; text-align: center; }
-        .dl-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 15px; }
+        .dl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
+
+        @keyframes pulseRec { 0% { box-shadow: 0 0 10px red; } 50% { box-shadow: 0 0 35px red; } 100% { box-shadow: 0 0 10px red; } }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
 </head>
@@ -105,7 +111,15 @@
 
     <div class="landing-container" id="landing">
         <div class="pixel-title">NEURAL LENS</div>
-        <label class="action-btn primary" id="initBtn">
+        
+        <div id="modelLoadContainer" style="width: 300px; margin-top: 20px;">
+            <div style="font-size: 10px; color: var(--accent); margin-bottom: 8px; font-family: monospace; letter-spacing: 2px; text-align: left;" id="modelProgressText">INITIALIZING KERNEL...</div>
+            <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;">
+                <div id="modelProgress" style="width: 0%; height: 100%; background: var(--accent); transition: width 0.2s;"></div>
+            </div>
+        </div>
+
+        <label class="action-btn primary" id="initBtn" style="display: none;">
             INITIALIZE SCANNER
             <input type="file" id="imageInput" style="display:none;" accept="image/*">
         </label>
@@ -122,11 +136,15 @@
         <div class="modal-box">
             <div class="modal-title">EXPORT BUFFER</div>
             <input type="text" id="fileName" class="input-field" placeholder="Filename..." value="NEURAL_LENS_RECON">
+            
             <div class="dl-grid">
                 <button class="dl-btn" onclick="exportFile('png')">PNG</button>
                 <button class="dl-btn" onclick="exportFile('jpeg')">JPG</button>
+                <button class="dl-btn" onclick="exportFile('svg')">SVG</button>
                 <button class="dl-btn" onclick="exportFile('gif')" style="border-color: #ff0055; color: #ff0055; font-weight: bold;">GIF (3s)</button>
             </div>
+            
+            <button class="action-btn" id="recordBtn" onclick="startVideoRecording()">RECORD VIDEO</button>
             <button class="action-btn" onclick="closeExportModal()" style="margin-top:25px; width:100%; border: none; opacity: 0.6;">CANCEL</button>
         </div>
     </div>
@@ -144,10 +162,22 @@
                 <div class="label-box"><span>Glyph Mode</span></div>
                 <select id="glyphMode" class="input-field">
                     <option value="none">Point Cloud</option>
-                    <option value="custom">Custom Glyph (1-5 Chars)</option>
+                    <option value="custom">Custom Glyph (1-10 Chars)</option>
                     <option value="random">Glitch Matrix</option>
                 </select>
-                <input type="text" id="glyphInput" class="input-field" style="margin-top:8px; display:none;" placeholder="Enter up to 5 chars" maxlength="5">
+                <input type="text" id="glyphInput" class="input-field" style="margin-top:8px; display:none;" placeholder="Enter up to 10 chars" maxlength="10">
+                
+                <div id="randomCategories" style="display:none; margin-top:8px; background: rgba(0,0,0,0.3); border: 1px solid var(--ui-border); border-radius: 4px; padding: 12px;">
+                    <label style="display:flex; align-items:center; font-size:10px; color:#fff; margin-bottom:8px; cursor:pointer;">
+                        <input type="checkbox" id="catNumbers" checked style="margin-right:8px; accent-color: var(--accent);"> Numbers (0-9)
+                    </label>
+                    <label style="display:flex; align-items:center; font-size:10px; color:#fff; margin-bottom:8px; cursor:pointer;">
+                        <input type="checkbox" id="catLetters" checked style="margin-right:8px; accent-color: var(--accent);"> Letters (A-Z)
+                    </label>
+                    <label style="display:flex; align-items:center; font-size:10px; color:#fff; cursor:pointer;">
+                        <input type="checkbox" id="catSymbols" checked style="margin-right:8px; accent-color: var(--accent);"> Symbols (!?@...)
+                    </label>
+                </div>
             </div>
 
             <div class="control-group">
@@ -274,12 +304,66 @@
         window.exportFile = async (format) => {
             const baseName = document.getElementById('fileName').value || 'NEURAL_LENS_RECON';
             if(format === 'gif') { recordGIF(baseName); return; }
+            
             renderer.render(scene, camera);
+            
+            if(format === 'svg') {
+                const dataUrl = renderer.domElement.toDataURL('image/png', 1.0);
+                const w = renderer.domElement.width;
+                const h = renderer.domElement.height;
+                const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><image href="${dataUrl}" width="${w}" height="${h}"/></svg>`;
+                const blob = new Blob([svgStr], {type: 'image/svg+xml'});
+                const link = document.createElement('a');
+                link.download = `${baseName}.svg`;
+                link.href = URL.createObjectURL(blob);
+                link.click();
+                closeExportModal();
+                return;
+            }
+
             const link = document.createElement('a');
             link.download = `${baseName}.${format}`;
             link.href = renderer.domElement.toDataURL(`image/${format === 'png' ? 'png' : 'jpeg'}`, 0.9);
             link.click();
-            document.getElementById('exportModal').classList.remove('show');
+            closeExportModal();
+        };
+
+        // 优化版视频录制：不再隐藏 UI，利用 Canvas Capture 原生过滤特性，实现“可调整式录屏”
+        window.startVideoRecording = () => {
+            closeExportModal();
+            const baseName = document.getElementById('fileName').value || 'NEURAL_LENS_RECON';
+            
+            const stopBtn = document.createElement('button');
+            stopBtn.id = 'stopRecBtn';
+            stopBtn.innerText = 'STOP RECORDING';
+            stopBtn.style.cssText = 'position:fixed; top:40px; left:50%; transform:translateX(-50%); z-index:9999; padding:15px 40px; background:red; color:white; border:2px solid #ffaaaa; border-radius:30px; font-weight:bold; cursor:pointer; font-family:"Press Start 2P", monospace; font-size:12px; animation: pulseRec 1.5s infinite; transition: 0.3s;';
+            document.body.appendChild(stopBtn);
+
+            // WebGL Canvas CaptureStream 直接捕捉底层图像，不会包含 HTML DOM (侧边栏)
+            const stream = renderer.domElement.captureStream(30);
+            let options = { mimeType: 'video/webm; codecs=vp9' };
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                options = { mimeType: 'video/webm; codecs=vp8' };
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/webm' };
+            }
+
+            const mediaRecorder = new MediaRecorder(stream, options);
+            const recordedChunks = [];
+
+            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none'; a.href = url; a.download = `${baseName}.webm`;
+                document.body.appendChild(a); a.click();
+                setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 100);
+                stopBtn.remove();
+            };
+
+            mediaRecorder.start();
+            stopBtn.onclick = () => mediaRecorder.stop();
         };
 
         async function recordGIF(name) {
@@ -329,10 +413,24 @@
             controls.enableDamping = true;
 
             createAmbientStars();
-            createAtlas();
+            updateRandomAtlas(); 
             animate();
 
-            depthEstimator = await pipeline('depth-estimation', 'Xenova/depth-anything-small-hf');
+            // 新增：利用 progress_callback 驱动初始加载条
+            depthEstimator = await pipeline('depth-estimation', 'Xenova/depth-anything-small-hf', {
+                progress_callback: (data) => {
+                    if (data.status === 'progress') {
+                        const p = Math.max(0, Math.min(100, Math.round(data.progress)));
+                        document.getElementById('modelProgress').style.width = p + '%';
+                        document.getElementById('modelProgressText').innerText = `DOWNLOADING NEURAL CORE... ${p}%`;
+                    }
+                }
+            });
+
+            // 模型加载完毕，切换至等待上传状态
+            document.getElementById('modelLoadContainer').style.display = 'none';
+            document.getElementById('initBtn').style.display = 'inline-block';
+
             bindUI();
             setupIdleTimer();
         }
@@ -350,32 +448,80 @@
             panel.addEventListener('input', reset);
         }
 
-        function createAtlas() {
+        function updateRandomAtlas() {
+            const useNum = document.getElementById('catNumbers') ? document.getElementById('catNumbers').checked : true;
+            const useLet = document.getElementById('catLetters') ? document.getElementById('catLetters').checked : true;
+            const useSym = document.getElementById('catSymbols') ? document.getElementById('catSymbols').checked : true;
+
+            let chars = "";
+            if(useNum) chars += "0123456789";
+            if(useLet) chars += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            if(useSym) chars += "<>[]{}#@$*&!?%:=+-_^/()*";
+            if(chars === "") chars = "0101"; 
+
             const canvas = document.createElement('canvas');
             canvas.width = 512; canvas.height = 512;
             const ctx = canvas.getContext('2d');
             ctx.fillStyle = 'white'; ctx.font = 'bold 50px monospace';
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ<>[]{}#@$*&!?%:=+-_^/()*";
+            
             for(let i=0; i<64; i++) {
                 const x = (i % 8) * 64 + 32;
                 const y = Math.floor(i / 8) * 64 + 32;
                 ctx.fillText(chars[i % chars.length], x, y);
             }
+            
+            if (atlasTexture) atlasTexture.dispose();
             atlasTexture = new THREE.CanvasTexture(canvas);
             atlasTexture.flipY = false;
+            
+            if(points && document.getElementById('glyphMode').value === 'random') {
+                points.material.uniforms.uMap.value = atlasTexture;
+            }
         }
 
+        // 新增：更立体、更有层次的星空背景算法
         function createAmbientStars() {
-            const count = 15000; const geo = new THREE.BufferGeometry();
+            const count = 20000; 
+            const geo = new THREE.BufferGeometry();
             const pos = new Float32Array(count * 3);
+            const colors = new Float32Array(count * 3);
+
+            const color1 = new THREE.Color(0x00f2ff); // 青色
+            const color2 = new THREE.Color(0x0055ff); // 深蓝
+            const color3 = new THREE.Color(0xaa00ff); // 紫色
+
             for(let i=0; i<count; i++){
-                pos[i*3]=(Math.random()-0.5)*8000;
-                pos[i*3+1]=(Math.random()-0.5)*8000;
-                pos[i*3+2]=(Math.random()-0.5)*8000;
+                // 使用球坐标进行星系空间分布
+                const radius = 2000 + Math.random() * 8000;
+                const theta = Math.random() * 2 * Math.PI;
+                const phi = Math.acos((Math.random() * 2) - 1);
+
+                pos[i*3] = radius * Math.sin(phi) * Math.cos(theta);
+                pos[i*3+1] = radius * Math.sin(phi) * Math.sin(theta);
+                pos[i*3+2] = radius * Math.cos(phi);
+
+                // 随机混合颜色赋予顶点
+                const randCol = Math.random();
+                let c;
+                if(randCol < 0.5) c = color1;
+                else if(randCol < 0.8) c = color2;
+                else c = color3;
+
+                colors[i*3] = c.r;
+                colors[i*3+1] = c.g;
+                colors[i*3+2] = c.b;
             }
             geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
-            starfield = new THREE.Points(geo, new THREE.PointsMaterial({size: 4, color: 0x00f2ff, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending}));
+            geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            
+            starfield = new THREE.Points(geo, new THREE.PointsMaterial({
+                size: 3, 
+                vertexColors: true, 
+                transparent: true, 
+                opacity: 0.8, 
+                blending: THREE.AdditiveBlending
+            }));
             scene.add(starfield);
         }
 
@@ -399,7 +545,6 @@
                         
                         renderTopology();
                         
-                        // 重置缩放滑块到初始 20% 位置
                         document.getElementById('zoomRange').value = 20;
                         document.getElementById('v-zoom').innerText = 20;
                         applyZoom(20);
@@ -432,9 +577,19 @@
             });
 
             document.getElementById('glyphMode').onchange = (e) => {
-                document.getElementById('glyphInput').style.display = (e.target.value === 'custom') ? 'block' : 'none';
+                const mode = e.target.value;
+                document.getElementById('glyphInput').style.display = (mode === 'custom') ? 'block' : 'none';
+                document.getElementById('randomCategories').style.display = (mode === 'random') ? 'block' : 'none';
+                if(mode === 'random') updateRandomAtlas();
                 renderTopology(); 
             };
+
+            ['catNumbers', 'catLetters', 'catSymbols'].forEach(id => {
+                document.getElementById(id).onchange = () => {
+                    updateRandomAtlas();
+                    renderTopology();
+                };
+            });
 
             document.getElementById('glyphInput').oninput = (e) => {
                 const chars = e.target.value.trim().split('');
@@ -461,14 +616,9 @@
         }
 
         function applyZoom(val) {
-            // 逻辑反转：0(远) -> 20(初始占满75%) -> 100(近)
-            // 20时距离约为1500, 100时距离约为150, 0时距离约为3000
             let dist;
-            if(val <= 20) {
-                dist = 3000 - (val * 75); // 0-20% 范围
-            } else {
-                dist = 1500 - ((val - 20) * 16.875); // 20-100% 范围，提供更大的放大潜力
-            }
+            if(val <= 20) { dist = 3000 - (val * 75); } 
+            else { dist = 1500 - ((val - 20) * 16.875); }
             camera.position.setLength(dist);
             controls.update();
         }
@@ -519,8 +669,6 @@
             if(starfield) starfield.visible = false;
             points = new THREE.Points(geo, mat);
             
-            // 核心修复：初始占满屏幕 75% 高度
-            // 计算逻辑：在距离 1500 (Zoom滑块20) 时，调整 scale 使得物体高度为视窗高度的 75%
             const vFov = camera.fov * Math.PI / 180;
             const visibleHeightAtInit = 2 * Math.tan(vFov / 2) * 1500;
             const s = (visibleHeightAtInit * 0.75) / Math.max(width, height);
