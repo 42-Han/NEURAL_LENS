@@ -3,139 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TERMINAL | Professional Recon V9</title>
+    <title>TERMINAL | Professional Recon V11</title>
     <style>
         :root {
             --accent: #00f2ff;
-            --ui-bg: rgba(2, 8, 15, 0.85);
-            --ui-border: rgba(0, 242, 255, 0.3);
-            --panel-w: 320px;
+            --ui-bg: rgba(10, 20, 30, 0.7);
+            --ui-border: rgba(0, 242, 255, 0.25);
+            --panel-w: 310px;
+            --transition: all 0.5s cubic-bezier(0.2, 1, 0.3, 1);
         }
 
         body, html { 
             margin: 0; padding: 0; width: 100%; height: 100%; 
             background: #000; color: #fff; 
-            font-family: "JetBrains Mono", monospace; overflow: hidden;
+            font-family: 'Segoe UI', 'Roboto', sans-serif; overflow: hidden;
         }
 
         #viewport { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 
-        /* 悬浮控制面板 */
-        .side-panel {
-            position: fixed; top: 20px; left: 20px; bottom: 20px; width: var(--panel-w);
-            background: var(--ui-bg); backdrop-filter: blur(15px);
+        /* 浮动面板 */
+        .glass-panel {
+            position: fixed; top: 30px; left: 30px; bottom: 30px; width: var(--panel-w);
+            background: var(--ui-bg); backdrop-filter: blur(20px);
             border: 1px solid var(--ui-border); z-index: 20;
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-            padding: 30px; box-sizing: border-box; display: flex; flex-direction: column;
-            border-radius: 4px; box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            transition: var(--transition);
+            padding: 35px 25px; box-sizing: border-box; display: flex; flex-direction: column;
+            border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            transform: translateX(0); opacity: 1;
         }
-        .side-panel.hidden { transform: translateX(calc(-100% - 40px)); opacity: 0; }
+        .glass-panel.hidden { transform: translateX(-350px); opacity: 0; pointer-events: none; }
 
-        /* 纯净模式唤起条 */
-        .ui-trigger {
-            position: fixed; top: 0; left: 0; width: 10px; height: 100%;
-            z-index: 21; cursor: pointer; transition: 0.3s;
+        .ui-toggle-trigger {
+            position: fixed; top: 50%; left: 0; width: 40px; height: 120px;
+            transform: translateY(-50%); z-index: 25; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
         }
-        .ui-trigger:hover { background: rgba(0, 242, 255, 0.2); }
-
-        .toggle-btn {
-            position: absolute; right: -15px; top: 50px; width: 30px; height: 30px;
-            background: var(--accent); color: #000; border: none; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; clip-path: polygon(0 0, 100% 50%, 0 100%);
+        .trigger-line {
+            width: 2px; height: 40px; background: var(--accent);
+            box-shadow: 0 0 15px var(--accent); transition: var(--transition);
         }
+        .ui-toggle-trigger:hover .trigger-line { height: 80px; width: 4px; }
 
-        .header { border-left: 3px solid var(--accent); padding-left: 12px; margin-bottom: 25px; }
-        .header h1 { margin: 0; font-size: 13px; letter-spacing: 3px; color: var(--accent); }
+        .header { margin-bottom: 30px; position: relative; }
+        .header h1 { margin: 0; font-size: 16px; letter-spacing: 2px; font-weight: 300; color: var(--accent); }
+        .header::after { content: ''; position: absolute; bottom: -10px; left: 0; width: 40px; height: 1px; background: var(--accent); }
 
-        .control-row { margin-bottom: 18px; }
-        .label-row { display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 8px; color: var(--accent); opacity: 0.7; }
+        .control-group { margin-bottom: 22px; }
+        .label-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .label-box span:first-child { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; }
+        .label-box span:last-child { font-family: monospace; font-size: 12px; color: var(--accent); }
         
         input[type="range"] {
-            -webkit-appearance: none; width: 100%; height: 6px; background: rgba(255,255,255,0.1);
-            border-radius: 3px; outline: none;
+            -webkit-appearance: none; width: 100%; height: 4px; background: rgba(255,255,255,0.1);
+            border-radius: 2px; outline: none;
         }
         input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 16px; height: 16px; background: var(--accent); border-radius: 50%; cursor: pointer;
+            -webkit-appearance: none; width: 14px; height: 14px; background: var(--accent); 
+            border-radius: 50%; cursor: pointer; border: 2px solid #000; box-shadow: 0 0 8px var(--accent);
         }
 
-        .text-input {
-            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--ui-border);
-            padding: 10px; color: var(--accent); font-family: inherit; font-size: 11px; outline: none;
+        .input-field {
+            width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--ui-border);
+            padding: 10px; color: #fff; font-size: 12px; border-radius: 4px; outline: none;
         }
 
-        .view-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         
-        .btn {
-            border: 1px solid var(--ui-border); color: #fff; background: rgba(255,255,255,0.05);
-            width: 100%; padding: 10px; font-size: 9px; cursor: pointer; transition: 0.2s;
+        .action-btn {
+            background: transparent; border: 1px solid var(--ui-border); color: #fff;
+            padding: 12px; font-size: 10px; cursor: pointer; border-radius: 4px;
+            transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;
         }
-        .btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
-        .btn-primary { border-color: var(--accent); color: var(--accent); margin-bottom: 20px; }
+        .action-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+        .action-btn.primary { border-color: var(--accent); color: var(--accent); }
 
-        .loader {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 10px; color: var(--accent); letter-spacing: 8px; display: none; z-index: 100;
-            background: rgba(0,0,0,0.6); padding: 15px; border: 1px solid var(--accent);
+        .loader-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 100; display: none;
+            flex-direction: column; align-items: center; justify-content: center;
         }
+        .pulse-loader { width: 40px; height: 40px; border: 2px solid var(--accent); border-radius: 50%; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
     </style>
 </head>
 <body>
 
     <div id="viewport"></div>
-    <div class="loader" id="loader">SIGNAL_PROCESSING...</div>
-    <div class="ui-trigger" id="trigger"></div>
+    <div class="loader-screen" id="loader">
+        <div class="pulse-loader"></div>
+        <div style="margin-top: 20px; font-size: 10px; letter-spacing: 5px; color: var(--accent);">PROCESSING_TOPOLOGY</div>
+    </div>
 
-    <div class="side-panel" id="panel">
-        <button class="toggle-btn" id="hideBtn"></button>
-        
+    <div class="ui-toggle-trigger" id="openUI"><div class="trigger-line"></div></div>
+
+    <div class="glass-panel" id="panel">
         <div class="header">
-            <h1>RECON_STATION_V9</h1>
-            <div style="font-size: 8px; opacity: 0.5;">ADVANCED SPATIAL DATA VISUALIZER</div>
+            <h1>SIGNAL PRO V11</h1>
+            <div style="font-size: 9px; opacity: 0.4; margin-top: 5px;">STABLE RECONSTRUCTION UNIT</div>
         </div>
 
-        <div style="flex: 1; overflow-y: auto;">
-            <label class="btn btn-primary" style="display: block; text-align: center;">
-                LOAD SOURCE DATA
+        <div style="flex: 1; overflow-y: auto; padding-right: 5px;">
+            <label class="action-btn primary" style="display: block; text-align: center; margin-bottom: 25px;">
+                IMPORT SOURCE IMAGE
                 <input type="file" id="imageInput" style="display:none;" accept="image/*">
             </label>
 
-            <div id="ui-controls" style="display: none;">
-                <div class="control-row">
-                    <div class="label-row"><span>CHAR_MAP</span></div>
-                    <input type="text" id="glyphInput" class="text-input" placeholder="Dots if empty" maxlength="2">
+            <div id="controls-hub" style="display: none;">
+                <div class="control-group">
+                    <div class="label-box"><span>Character Glyph</span></div>
+                    <input type="text" id="glyphInput" class="input-field" placeholder="Dots if empty" maxlength="1">
                 </div>
 
-                <div class="control-row">
-                    <div class="label-row"><span>DISTANCE (ZOOM)</span><span id="v-zoom">1000</span></div>
-                    <input type="range" id="zoomRange" min="200" max="2500" value="1000">
+                <div class="control-group">
+                    <div class="label-box"><span>Point Size</span><span id="v-psize">3.0</span></div>
+                    <input type="range" id="psizeRange" min="0.5" max="10" step="0.1" value="3.0">
                 </div>
 
-                <div class="control-row">
-                    <div class="label-row"><span>DENSITY (STRIDE)</span><span id="v-stride">4</span></div>
-                    <input type="range" id="strideRange" min="2" max="20" value="4">
+                <div class="control-group">
+                    <div class="label-box"><span>Particle Spacing</span><span id="v-stride">4</span></div>
+                    <input type="range" id="strideRange" min="2" max="24" value="4">
                 </div>
 
-                <div class="control-row">
-                    <div class="label-row"><span>Z-STRENGTH</span><span id="v-depth">200</span></div>
+                <div class="control-group">
+                    <div class="label-box"><span>Z-Depth Intensity</span><span id="v-depth">200</span></div>
                     <input type="range" id="depthRange" min="0" max="800" value="200">
                 </div>
 
-                <div class="control-row">
-                    <div class="label-row"><span>QUICK_VIEW</span></div>
-                    <div class="view-grid">
-                        <button class="btn" id="v-front">FRONT</button>
-                        <button class="btn" id="v-top">TOP</button>
-                        <button class="btn" id="v-left">LEFT</button>
-                        <button class="btn" id="v-right">RIGHT</button>
+                <div class="control-group">
+                    <div class="label-box"><span>Camera Distance</span><span id="v-zoom">1000</span></div>
+                    <input type="range" id="zoomRange" min="200" max="3000" value="1000">
+                </div>
+
+                <div class="control-group">
+                    <div class="label-box"><span>Perspective Presets</span></div>
+                    <div class="grid-2">
+                        <button class="action-btn" id="v-front">Front</button>
+                        <button class="action-btn" id="v-top">Top</button>
+                        <button class="action-btn" id="v-left">Left</button>
+                        <button class="action-btn" id="v-right">Right</button>
                     </div>
                 </div>
 
-                <button class="btn" id="downloadBtn" style="color: var(--accent);">DOWNLOAD_SNAPSHOT</button>
-                <button class="btn" id="resetBtn" style="margin-top: 8px; opacity: 0.6;">RESET_ALL</button>
+                <div class="grid-2" style="margin-top: 30px;">
+                    <button class="action-btn" id="hidePanel" style="border: none; opacity: 0.5;">Hide UI</button>
+                    <button class="action-btn primary" id="downloadBtn">Export</button>
+                </div>
             </div>
         </div>
-        
-        <div id="status" style="font-size: 9px; opacity: 0.5; margin-top: 20px;">INITIALIZING_AI...</div>
+        <div id="statusLine" style="font-size: 9px; opacity: 0.4; margin-top: 20px;">SYSTEM: STANDBY</div>
     </div>
 
     <script type="importmap">
@@ -159,10 +174,8 @@
             vColor = color;
             vFlicker = random(position.xy + uTime * 0.0005);
             vec3 pos = position;
-            // 实时随机抖动
-            pos.x += (random(position.xy + uTime) - 0.5) * 0.5;
-            pos.y += (random(position.yx + uTime) - 0.5) * 0.5;
-            
+            pos.x += (random(position.xy + uTime) - 0.5) * 0.4;
+            pos.y += (random(position.yx + uTime) - 0.5) * 0.4;
             vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
             gl_PointSize = uPointSize * (1000.0 / -mvPosition.z);
             gl_Position = projectionMatrix * mvPosition;
@@ -184,7 +197,7 @@
                 if(dist > 0.5) discard;
                 texColor.a = 1.0 - smoothstep(0.4, 0.5, dist);
             }
-            float f = (vFlicker > 0.98) ? 1.5 : 1.0;
+            float f = (vFlicker > 0.98) ? 1.8 : 1.0;
             gl_FragColor = vec4(vColor * f, texColor.a * 0.9);
         }
     </script>
@@ -195,77 +208,68 @@
         import { pipeline, env } from '@xenova/transformers';
 
         env.allowLocalModels = false;
-        env.useBrowserCache = true;
-
         let scene, camera, renderer, controls, points, starfield;
-        let depthEstimator, currentTexture;
-        let lastImg = null, lastDepth = null;
-        let clock = new THREE.Clock();
+        let depthEstimator, currentTexture, lastImg = null, lastDepth = null;
+        const clock = new THREE.Clock();
 
         async function init() {
-            // Scene Setup
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
-            camera.position.set(0, 0, 1000);
+            camera.position.set(500, 300, 1500); // 调整初始视角
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setPixelRatio(window.devicePixelRatio);
             document.getElementById('viewport').appendChild(renderer.domElement);
 
             controls = new OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
 
-            // 初始背景
-            createStarfield();
-            
+            createAmbientStars();
             animate();
 
-            // Load AI Model
             try {
-                const pipe = await pipeline('depth-estimation', 'Xenova/depth-anything-small-hf');
-                depthEstimator = pipe;
-                document.getElementById('status').innerText = 'ENGINE_READY //';
+                depthEstimator = await pipeline('depth-estimation', 'Xenova/depth-anything-small-hf');
+                document.getElementById('statusLine').innerText = 'AI_ENGINE: ONLINE';
             } catch (e) {
-                document.getElementById('status').innerText = 'AI_LOAD_ERROR';
+                document.getElementById('statusLine').innerText = 'AI_ERROR';
             }
 
-            // UI Events
-            setupEventListeners();
+            bindUI();
         }
 
-        function createStarfield() {
-            const count = 6000;
+        function createAmbientStars() {
+            const count = 12000; // 增加初始粒子数量
             const geo = new THREE.BufferGeometry();
             const pos = new Float32Array(count * 3);
             const speeds = new Float32Array(count);
             for(let i=0; i<count; i++){
-                pos[i*3]=(Math.random()-0.5)*4000;
-                pos[i*3+1]=(Math.random()-0.5)*4000;
-                pos[i*3+2]=(Math.random()-0.5)*4000;
-                speeds[i]= 1 + Math.random()*5;
+                pos[i*3]=(Math.random()-0.5)*6000;
+                pos[i*3+1]=(Math.random()-0.5)*6000;
+                pos[i*3+2]=(Math.random()-0.5)*6000;
+                speeds[i] = 1.0 + Math.random() * 3;
             }
             geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
-            const mat = new THREE.PointsMaterial({size: 3, color: 0x00f2ff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending});
+            const mat = new THREE.PointsMaterial({
+                size: 4, // 稍微增大初始粒子
+                color: 0x00f2ff, 
+                transparent: true, 
+                opacity: 0.7, 
+                blending: THREE.AdditiveBlending
+            });
             starfield = new THREE.Points(geo, mat);
             starfield.userData.speeds = speeds;
             scene.add(starfield);
         }
 
-        function setupEventListeners() {
-            const panel = document.getElementById('panel');
-            
-            // Toggle UI
-            const toggleFunc = () => panel.classList.toggle('hidden');
-            document.getElementById('hideBtn').onclick = toggleFunc;
-            document.getElementById('trigger').onclick = toggleFunc;
+        function bindUI() {
+            document.getElementById('hidePanel').onclick = () => document.getElementById('panel').classList.add('hidden');
+            document.getElementById('openUI').onclick = () => document.getElementById('panel').classList.toggle('hidden');
 
-            // File Upload
             document.getElementById('imageInput').onchange = async (e) => {
                 const file = e.target.files[0];
-                if(!file || !depthEstimator) return;
-
-                document.getElementById('loader').style.display = 'block';
+                if(!file) return;
+                document.getElementById('loader').style.display = 'flex';
                 const reader = new FileReader();
                 reader.onload = async (ev) => {
                     const result = await depthEstimator(ev.target.result);
@@ -274,54 +278,48 @@
                     img.src = ev.target.result;
                     img.onload = () => {
                         lastImg = img;
-                        rebuild();
+                        renderTopology();
                         document.getElementById('loader').style.display = 'none';
-                        document.getElementById('ui-controls').style.display = 'block';
+                        document.getElementById('controls-hub').style.display = 'block';
                     };
                 };
                 reader.readAsDataURL(file);
             };
 
-            // Sliders
-            document.getElementById('zoomRange').oninput = (e) => {
-                camera.position.setLength(e.target.value);
-                document.getElementById('v-zoom').innerText = e.target.value;
+            // 滑块逻辑
+            const sliders = {
+                'strideRange': 'v-stride', 'psizeRange': 'v-psize', 
+                'zoomRange': 'v-zoom', 'depthRange': 'v-depth'
             };
-            document.getElementById('strideRange').oninput = (e) => {
-                document.getElementById('v-stride').innerText = e.target.value;
-                rebuild();
-            };
-            document.getElementById('depthRange').oninput = (e) => {
-                document.getElementById('v-depth').innerText = e.target.value;
-                if(points) points.scale.z = e.target.value / 200;
-            };
+            Object.keys(sliders).forEach(id => {
+                document.getElementById(id).oninput = (e) => {
+                    const val = e.target.value;
+                    document.getElementById(sliders[id]).innerText = val;
+                    if(id === 'strideRange') renderTopology();
+                    if(id === 'psizeRange' && points) points.material.uniforms.uPointSize.value = parseFloat(val);
+                    if(id === 'zoomRange') camera.position.setLength(val);
+                    if(id === 'depthRange' && points) points.scale.z = val / 200;
+                };
+            });
 
-            // View Control
-            const setView = (v) => {
-                const len = camera.position.length();
-                if(v==='front') camera.position.set(0,0,len);
-                if(v==='top') camera.position.set(0,len,0);
-                if(v==='left') camera.position.set(-len,0,0);
-                if(v==='right') camera.position.set(len,0,0);
-                controls.update();
-            };
-            document.getElementById('v-front').onclick = () => setView('front');
-            document.getElementById('v-top').onclick = () => setView('top');
-            document.getElementById('v-left').onclick = () => setView('left');
-            document.getElementById('v-right').onclick = () => setView('right');
+            // 视角
+            const views = {'v-front':[0,0,1], 'v-top':[0,1,0], 'v-left':[-1,0,0], 'v-right':[1,0,0]};
+            Object.keys(views).forEach(id => {
+                document.getElementById(id).onclick = () => {
+                    const dist = camera.position.length();
+                    camera.position.set(views[id][0]*dist, views[id][1]*dist, views[id][2]*dist);
+                    controls.update();
+                };
+            });
 
-            // Character Map
             document.getElementById('glyphInput').oninput = (e) => {
-                const val = e.target.value.trim();
-                if(!val) currentTexture = null;
+                const char = e.target.value.trim();
+                if(!char) currentTexture = null;
                 else {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 64; canvas.height = 64;
-                    const ctx = canvas.getContext('2d');
-                    ctx.fillStyle = 'white'; ctx.font = 'bold 50px monospace';
-                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                    ctx.fillText(val, 32, 32);
-                    currentTexture = new THREE.CanvasTexture(canvas);
+                    const canv = document.createElement('canvas'); canv.width = 64; canv.height = 64;
+                    const ctx = canv.getContext('2d'); ctx.fillStyle='white'; ctx.font='bold 50px monospace';
+                    ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(char, 32, 32);
+                    currentTexture = new THREE.CanvasTexture(canv);
                 }
                 if(points) {
                     points.material.uniforms.uMap.value = currentTexture;
@@ -329,17 +327,15 @@
                 }
             };
 
-            // Screenshot
             document.getElementById('downloadBtn').onclick = () => {
-                const data = renderer.domElement.toDataURL('image/png');
+                const name = prompt("Enter file name:", `RECON_${Date.now()}`);
+                if (name === null) return;
+                renderer.render(scene, camera);
                 const link = document.createElement('a');
-                link.download = 'spatial_snapshot.png';
-                link.href = data;
+                link.download = `${name || 'export'}.png`;
+                link.href = renderer.domElement.toDataURL('image/png');
                 link.click();
             };
-
-            // Reset
-            document.getElementById('resetBtn').onclick = () => location.reload();
 
             window.addEventListener('resize', () => {
                 camera.aspect = window.innerWidth / window.innerHeight;
@@ -348,46 +344,49 @@
             });
         }
 
-        function rebuild() {
+        function renderTopology() {
             if(!lastImg || !lastDepth) return;
             const { width, height, data } = lastDepth;
             const stride = parseInt(document.getElementById('strideRange').value);
-            const zScale = parseFloat(document.getElementById('depthRange').value);
+            const zIntensity = parseFloat(document.getElementById('depthRange').value);
             
-            const pos = [], col = [];
+            const positions = [], colors = [];
             const canvas = document.createElement('canvas');
             canvas.width = width; canvas.height = height;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(lastImg, 0, 0, width, height);
             const pixels = ctx.getImageData(0, 0, width, height).data;
 
-            let min = data[0], max = data[0];
-            for(let v of data) { if(v < min) min = v; if(v > max) max = v; }
+            // 修复栈溢出的循环查找
+            let minZ = Infinity, maxZ = -Infinity;
+            for(let i=0; i<data.length; i++) {
+                if(data[i] < minZ) minZ = data[i];
+                if(data[i] > maxZ) maxZ = data[i];
+            }
 
-            const cx = width / 2, cy = height / 2;
-            const maxD = Math.sqrt(cx*cx + cy*cy);
+            const cx = width / 2, cy = height / 2, maxDist = Math.sqrt(cx*cx + cy*cy);
 
             for (let y = 0; y < height; y += stride) {
                 for (let x = 0; x < width; x += stride) {
-                    const i = y * width + x;
-                    const d = Math.sqrt((x-cx)**2 + (y-cy)**2) / maxD;
-                    if(Math.random() < d * 0.6) continue;
+                    const idx = y * width + x;
+                    const distRatio = Math.sqrt((x-cx)**2 + (y-cy)**2) / maxDist;
+                    if(Math.random() < distRatio * 0.6) continue;
 
-                    const nz = (data[i] - min) / (max - min);
-                    pos.push(x - cx, cy - y, nz * zScale);
-                    col.push(pixels[i*4]/255, pixels[i*4+1]/255, pixels[i*4+2]/255);
+                    const nz = (data[idx] - minZ) / (maxZ - minZ || 1);
+                    positions.push(x - cx, cy - y, nz * zIntensity);
+                    colors.push(pixels[idx*4]/255, pixels[idx*4+1]/255, pixels[idx*4+2]/255);
                 }
             }
 
             const geo = new THREE.BufferGeometry();
-            geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-            geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+            geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
             geo.center();
 
             const mat = new THREE.ShaderMaterial({
                 uniforms: {
                     uTime: { value: 0 },
-                    uPointSize: { value: 3.0 },
+                    uPointSize: { value: parseFloat(document.getElementById('psizeRange').value) },
                     uMap: { value: currentTexture },
                     uUseMap: { value: !!currentTexture }
                 },
@@ -399,25 +398,23 @@
             if(points) scene.remove(points);
             if(starfield) starfield.visible = false;
             points = new THREE.Points(geo, mat);
-            
-            // 自动缩放适配
-            const s = 800 / Math.max(width, height);
+            const s = 850 / Math.max(width, height);
             points.scale.set(s, s, s);
             scene.add(points);
         }
 
         function animate() {
             requestAnimationFrame(animate);
-            const t = clock.getElapsedTime();
+            const time = clock.getElapsedTime();
             if(starfield && starfield.visible) {
                 const p = starfield.geometry.attributes.position.array;
                 const s = starfield.userData.speeds;
                 for(let i=0; i<s.length; i++){
-                    p[i*3+2] += s[i]; if(p[i*3+2] > 2000) p[i*3+2] = -2000;
+                    p[i*3+2] += s[i]; if(p[i*3+2] > 3000) p[i*3+2] = -3000;
                 }
                 starfield.geometry.attributes.position.needsUpdate = true;
             }
-            if(points) points.material.uniforms.uTime.value = t * 1000;
+            if(points) points.material.uniforms.uTime.value = time * 1000;
             controls.update();
             renderer.render(scene, camera);
         }
