@@ -3,25 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TERMINAL | Professional Recon V11</title>
+    <title>TERMINAL | Professional Recon V12</title>
     <style>
         :root {
             --accent: #00f2ff;
-            --ui-bg: rgba(10, 20, 30, 0.7);
+            --ui-bg: rgba(10, 20, 30, 0.75);
             --ui-border: rgba(0, 242, 255, 0.25);
-            --panel-w: 310px;
+            --panel-w: 340px; /* 稍微扩大宽度以容纳 UI */
             --transition: all 0.5s cubic-bezier(0.2, 1, 0.3, 1);
         }
 
         body, html { 
             margin: 0; padding: 0; width: 100%; height: 100%; 
             background: #000; color: #fff; 
-            font-family: 'Segoe UI', 'Roboto', sans-serif; overflow: hidden;
+            font-family: 'Segoe UI', sans-serif; overflow: hidden;
         }
 
         #viewport { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 
-        /* 浮动面板 */
+        /* 浮动面板 - 禁止横向滚动 */
         .glass-panel {
             position: fixed; top: 30px; left: 30px; bottom: 30px; width: var(--panel-w);
             background: var(--ui-bg); backdrop-filter: blur(20px);
@@ -30,8 +30,9 @@
             padding: 35px 25px; box-sizing: border-box; display: flex; flex-direction: column;
             border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
             transform: translateX(0); opacity: 1;
+            overflow-x: hidden; /* 严格禁止左右滑动 */
         }
-        .glass-panel.hidden { transform: translateX(-350px); opacity: 0; pointer-events: none; }
+        .glass-panel.hidden { transform: translateX(-400px); opacity: 0; pointer-events: none; }
 
         .ui-toggle-trigger {
             position: fixed; top: 50%; left: 0; width: 40px; height: 120px;
@@ -48,14 +49,14 @@
         .header h1 { margin: 0; font-size: 16px; letter-spacing: 2px; font-weight: 300; color: var(--accent); }
         .header::after { content: ''; position: absolute; bottom: -10px; left: 0; width: 40px; height: 1px; background: var(--accent); }
 
-        .control-group { margin-bottom: 22px; }
+        .control-group { margin-bottom: 22px; width: 100%; }
         .label-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .label-box span:first-child { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; }
         .label-box span:last-child { font-family: monospace; font-size: 12px; color: var(--accent); }
         
         input[type="range"] {
             -webkit-appearance: none; width: 100%; height: 4px; background: rgba(255,255,255,0.1);
-            border-radius: 2px; outline: none;
+            border-radius: 2px; outline: none; margin: 0;
         }
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none; width: 14px; height: 14px; background: var(--accent); 
@@ -64,7 +65,7 @@
 
         .input-field {
             width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--ui-border);
-            padding: 10px; color: #fff; font-size: 12px; border-radius: 4px; outline: none;
+            padding: 10px; color: #fff; font-size: 12px; border-radius: 4px; outline: none; box-sizing: border-box;
         }
 
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -72,7 +73,7 @@
         .action-btn {
             background: transparent; border: 1px solid var(--ui-border); color: #fff;
             padding: 12px; font-size: 10px; cursor: pointer; border-radius: 4px;
-            transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;
+            transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; overflow: hidden;
         }
         .action-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
         .action-btn.primary { border-color: var(--accent); color: var(--accent); }
@@ -91,18 +92,18 @@
     <div id="viewport"></div>
     <div class="loader-screen" id="loader">
         <div class="pulse-loader"></div>
-        <div style="margin-top: 20px; font-size: 10px; letter-spacing: 5px; color: var(--accent);">PROCESSING_TOPOLOGY</div>
+        <div style="margin-top: 20px; font-size: 10px; letter-spacing: 5px; color: var(--accent);">RECONSTRUCTING_DATA</div>
     </div>
 
     <div class="ui-toggle-trigger" id="openUI"><div class="trigger-line"></div></div>
 
     <div class="glass-panel" id="panel">
         <div class="header">
-            <h1>SIGNAL PRO V11</h1>
-            <div style="font-size: 9px; opacity: 0.4; margin-top: 5px;">STABLE RECONSTRUCTION UNIT</div>
+            <h1>SIGNAL PRO V12</h1>
+            <div style="font-size: 9px; opacity: 0.4; margin-top: 5px;">SPATIAL TOPOLOGY ANALYZER</div>
         </div>
 
-        <div style="flex: 1; overflow-y: auto; padding-right: 5px;">
+        <div style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-right: 5px;">
             <label class="action-btn primary" style="display: block; text-align: center; margin-bottom: 25px;">
                 IMPORT SOURCE IMAGE
                 <input type="file" id="imageInput" style="display:none;" accept="image/*">
@@ -198,7 +199,7 @@
                 texColor.a = 1.0 - smoothstep(0.4, 0.5, dist);
             }
             float f = (vFlicker > 0.98) ? 1.8 : 1.0;
-            gl_FragColor = vec4(vColor * f, texColor.a * 0.9);
+            gl_FragColor = vec4(vColor * f, texColor.a * 0.85);
         }
     </script>
 
@@ -215,7 +216,7 @@
         async function init() {
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
-            camera.position.set(500, 300, 1500); // 调整初始视角
+            camera.position.set(600, 400, 1500); 
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -239,22 +240,22 @@
         }
 
         function createAmbientStars() {
-            const count = 12000; // 增加初始粒子数量
+            const count = 15000; 
             const geo = new THREE.BufferGeometry();
             const pos = new Float32Array(count * 3);
             const speeds = new Float32Array(count);
             for(let i=0; i<count; i++){
-                pos[i*3]=(Math.random()-0.5)*6000;
-                pos[i*3+1]=(Math.random()-0.5)*6000;
-                pos[i*3+2]=(Math.random()-0.5)*6000;
-                speeds[i] = 1.0 + Math.random() * 3;
+                pos[i*3]=(Math.random()-0.5)*8000;
+                pos[i*3+1]=(Math.random()-0.5)*8000;
+                pos[i*3+2]=(Math.random()-0.5)*8000;
+                speeds[i] = 1.2 + Math.random() * 4;
             }
             geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
             const mat = new THREE.PointsMaterial({
-                size: 4, // 稍微增大初始粒子
+                size: 5, 
                 color: 0x00f2ff, 
                 transparent: true, 
-                opacity: 0.7, 
+                opacity: 0.8, 
                 blending: THREE.AdditiveBlending
             });
             starfield = new THREE.Points(geo, mat);
@@ -286,11 +287,7 @@
                 reader.readAsDataURL(file);
             };
 
-            // 滑块逻辑
-            const sliders = {
-                'strideRange': 'v-stride', 'psizeRange': 'v-psize', 
-                'zoomRange': 'v-zoom', 'depthRange': 'v-depth'
-            };
+            const sliders = {'strideRange': 'v-stride', 'psizeRange': 'v-psize', 'zoomRange': 'v-zoom', 'depthRange': 'v-depth'};
             Object.keys(sliders).forEach(id => {
                 document.getElementById(id).oninput = (e) => {
                     const val = e.target.value;
@@ -302,7 +299,6 @@
                 };
             });
 
-            // 视角
             const views = {'v-front':[0,0,1], 'v-top':[0,1,0], 'v-left':[-1,0,0], 'v-right':[1,0,0]};
             Object.keys(views).forEach(id => {
                 document.getElementById(id).onclick = () => {
@@ -316,10 +312,13 @@
                 const char = e.target.value.trim();
                 if(!char) currentTexture = null;
                 else {
-                    const canv = document.createElement('canvas'); canv.width = 64; canv.height = 64;
-                    const ctx = canv.getContext('2d'); ctx.fillStyle='white'; ctx.font='bold 50px monospace';
-                    ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(char, 32, 32);
+                    const canv = document.createElement('canvas'); canv.width = 128; canv.height = 128;
+                    const ctx = canv.getContext('2d');
+                    ctx.fillStyle='white'; ctx.font='bold 90px monospace';
+                    ctx.textAlign='center'; ctx.textBaseline='middle';
+                    ctx.fillText(char, 64, 64);
                     currentTexture = new THREE.CanvasTexture(canv);
+                    currentTexture.flipY = false; // 核心修正：修复字符倒置
                 }
                 if(points) {
                     points.material.uniforms.uMap.value = currentTexture;
@@ -357,20 +356,29 @@
             ctx.drawImage(lastImg, 0, 0, width, height);
             const pixels = ctx.getImageData(0, 0, width, height).data;
 
-            // 修复栈溢出的循环查找
             let minZ = Infinity, maxZ = -Infinity;
             for(let i=0; i<data.length; i++) {
                 if(data[i] < minZ) minZ = data[i];
                 if(data[i] > maxZ) maxZ = data[i];
             }
 
-            const cx = width / 2, cy = height / 2, maxDist = Math.sqrt(cx*cx + cy*cy);
+            const cx = width / 2, cy = height / 2;
+            const borderThreshold = Math.max(width, height) * 0.45;
 
             for (let y = 0; y < height; y += stride) {
                 for (let x = 0; x < width; x += stride) {
                     const idx = y * width + x;
-                    const distRatio = Math.sqrt((x-cx)**2 + (y-cy)**2) / maxDist;
-                    if(Math.random() < distRatio * 0.6) continue;
+                    
+                    // 核心修正：优化四边弥散算法
+                    const dx = Math.abs(x - cx);
+                    const dy = Math.abs(y - cy);
+                    const distToCenter = Math.max(dx, dy); 
+                    const normalizedDist = distToCenter / borderThreshold;
+                    
+                    // 越靠近边缘，被随机丢弃（弥散）的概率越大
+                    if(normalizedDist > 0.75) {
+                        if(Math.random() < (normalizedDist - 0.75) * 4.0) continue;
+                    }
 
                     const nz = (data[idx] - minZ) / (maxZ - minZ || 1);
                     positions.push(x - cx, cy - y, nz * zIntensity);
@@ -410,7 +418,7 @@
                 const p = starfield.geometry.attributes.position.array;
                 const s = starfield.userData.speeds;
                 for(let i=0; i<s.length; i++){
-                    p[i*3+2] += s[i]; if(p[i*3+2] > 3000) p[i*3+2] = -3000;
+                    p[i*3+2] += s[i]; if(p[i*3+2] > 4000) p[i*3+2] = -4000;
                 }
                 starfield.geometry.attributes.position.needsUpdate = true;
             }
