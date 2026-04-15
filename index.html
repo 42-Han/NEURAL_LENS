@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TERMINAL | Advanced Topology V7</title>
+    <title>TERMINAL | Professional Recon V9</title>
     <style>
         :root {
             --accent: #00f2ff;
-            --ui-bg: rgba(2, 5, 10, 0.9);
-            --ui-border: rgba(0, 242, 255, 0.15);
+            --ui-bg: rgba(2, 8, 15, 0.85);
+            --ui-border: rgba(0, 242, 255, 0.3);
+            --panel-w: 320px;
         }
 
         body, html { 
@@ -19,93 +20,122 @@
 
         #viewport { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
 
-        .hud {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 10; pointer-events: none; padding: 30px; box-sizing: border-box;
-            display: flex; flex-direction: column; justify-content: space-between;
-        }
-
-        .header { display: flex; justify-content: space-between; border-left: 4px solid var(--accent); padding-left: 15px; }
-        .header h1 { margin: 0; font-size: 14px; letter-spacing: 4px; }
-
+        /* 悬浮控制面板 */
         .side-panel {
-            width: 320px; background: var(--ui-bg); backdrop-filter: blur(20px);
-            border: 1px solid var(--ui-border); padding: 25px; pointer-events: auto;
+            position: fixed; top: 20px; left: 20px; bottom: 20px; width: var(--panel-w);
+            background: var(--ui-bg); backdrop-filter: blur(15px);
+            border: 1px solid var(--ui-border); z-index: 20;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            padding: 30px; box-sizing: border-box; display: flex; flex-direction: column;
+            border-radius: 4px; box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+        .side-panel.hidden { transform: translateX(calc(-100% - 40px)); opacity: 0; }
+
+        /* 纯净模式唤起条 */
+        .ui-trigger {
+            position: fixed; top: 0; left: 0; width: 10px; height: 100%;
+            z-index: 21; cursor: pointer; transition: 0.3s;
+        }
+        .ui-trigger:hover { background: rgba(0, 242, 255, 0.2); }
+
+        .toggle-btn {
+            position: absolute; right: -15px; top: 50px; width: 30px; height: 30px;
+            background: var(--accent); color: #000; border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; clip-path: polygon(0 0, 100% 50%, 0 100%);
         }
 
-        .control-row { margin-bottom: 22px; }
-        .label-row { display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 10px; opacity: 0.6; color: var(--accent); }
+        .header { border-left: 3px solid var(--accent); padding-left: 12px; margin-bottom: 25px; }
+        .header h1 { margin: 0; font-size: 13px; letter-spacing: 3px; color: var(--accent); }
+
+        .control-row { margin-bottom: 18px; }
+        .label-row { display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 8px; color: var(--accent); opacity: 0.7; }
         
         input[type="range"] {
-            -webkit-appearance: none; width: 100%; height: 12px; background: rgba(255,255,255,0.05);
-            border-radius: 2px; outline: none; cursor: pointer;
+            -webkit-appearance: none; width: 100%; height: 6px; background: rgba(255,255,255,0.1);
+            border-radius: 3px; outline: none;
         }
         input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 14px; height: 24px; background: var(--accent);
-            border-radius: 1px; border: none; box-shadow: 0 0 10px var(--accent);
+            -webkit-appearance: none; width: 16px; height: 16px; background: var(--accent); border-radius: 50%; cursor: pointer;
         }
 
         .text-input {
-            width: 100%; background: rgba(255,255,255,0.03); border: 1px solid var(--ui-border);
-            padding: 10px; color: var(--accent); font-family: inherit; font-size: 11px; box-sizing: border-box;
+            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--ui-border);
+            padding: 10px; color: var(--accent); font-family: inherit; font-size: 11px; outline: none;
         }
 
+        .view-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        
         .btn {
-            border: 1px solid var(--accent); color: var(--accent); background: transparent;
-            width: 100%; padding: 12px; font-size: 10px; cursor: pointer; letter-spacing: 2px;
-            transition: 0.3s;
+            border: 1px solid var(--ui-border); color: #fff; background: rgba(255,255,255,0.05);
+            width: 100%; padding: 10px; font-size: 9px; cursor: pointer; transition: 0.2s;
         }
-        .btn:hover { background: var(--accent); color: #000; }
+        .btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+        .btn-primary { border-color: var(--accent); color: var(--accent); margin-bottom: 20px; }
 
-        .loader-overlay {
+        .loader {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             font-size: 10px; color: var(--accent); letter-spacing: 8px; display: none; z-index: 100;
+            background: rgba(0,0,0,0.6); padding: 15px; border: 1px solid var(--accent);
         }
     </style>
 </head>
 <body>
 
     <div id="viewport"></div>
-    <div class="loader-overlay" id="loader">ANALYZING_TOPOLOGY...</div>
+    <div class="loader" id="loader">SIGNAL_PROCESSING...</div>
+    <div class="ui-trigger" id="trigger"></div>
 
-    <div class="hud">
+    <div class="side-panel" id="panel">
+        <button class="toggle-btn" id="hideBtn"></button>
+        
         <div class="header">
-            <div>
-                <h1>SIGNAL_PROCESSOR_V7</h1>
-                <div style="font-size: 8px; opacity: 0.5; margin-top: 5px;">360° SPATIAL RECONSTRUCTION</div>
-            </div>
-            <div id="clock" style="font-size: 10px; opacity: 0.6;">00:00:00</div>
+            <h1>RECON_STATION_V9</h1>
+            <div style="font-size: 8px; opacity: 0.5;">ADVANCED SPATIAL DATA VISUALIZER</div>
         </div>
 
-        <div class="side-panel">
-            <span id="status" style="font-size: 9px; color: var(--accent);">// SYSTEM_STANDBY</span>
-            <div style="height: 1px; background: var(--ui-border); margin: 15px 0;"></div>
-
-            <label class="btn" style="display: block; text-align: center; margin-bottom: 20px;">
-                IMPORT_DATA_STREAM
+        <div style="flex: 1; overflow-y: auto;">
+            <label class="btn btn-primary" style="display: block; text-align: center;">
+                LOAD SOURCE DATA
                 <input type="file" id="imageInput" style="display:none;" accept="image/*">
             </label>
 
             <div id="ui-controls" style="display: none;">
                 <div class="control-row">
-                    <div class="label-row"><span>GLYPH_OVERRIDE</span></div>
-                    <input type="text" id="glyphInput" class="text-input" placeholder="e.g. X, 0, #" maxlength="2">
+                    <div class="label-row"><span>CHAR_MAP</span></div>
+                    <input type="text" id="glyphInput" class="text-input" placeholder="Dots if empty" maxlength="2">
                 </div>
+
                 <div class="control-row">
-                    <div class="label-row"><span>PARTICLE_SPACING</span><span id="v-stride">4</span></div>
-                    <input type="range" id="strideRange" min="2" max="16" value="4">
+                    <div class="label-row"><span>DISTANCE (ZOOM)</span><span id="v-zoom">1000</span></div>
+                    <input type="range" id="zoomRange" min="200" max="2500" value="1000">
                 </div>
+
                 <div class="control-row">
-                    <div class="label-row"><span>Z_DEPTH_STRENGTH</span><span id="v-depth">180</span></div>
-                    <input type="range" id="depthRange" min="0" max="600" value="180">
+                    <div class="label-row"><span>DENSITY (STRIDE)</span><span id="v-stride">4</span></div>
+                    <input type="range" id="strideRange" min="2" max="20" value="4">
                 </div>
+
                 <div class="control-row">
-                    <div class="label-row"><span>VISUAL_SIZE</span><span id="v-size">2.8</span></div>
-                    <input type="range" id="sizeRange" min="0.5" max="15" step="0.1" value="2.8">
+                    <div class="label-row"><span>Z-STRENGTH</span><span id="v-depth">200</span></div>
+                    <input type="range" id="depthRange" min="0" max="800" value="200">
                 </div>
-                <button class="btn" id="resetCam" style="border-color: rgba(255,255,255,0.2); color:#fff;">RESET_CAMERA</button>
+
+                <div class="control-row">
+                    <div class="label-row"><span>QUICK_VIEW</span></div>
+                    <div class="view-grid">
+                        <button class="btn" id="v-front">FRONT</button>
+                        <button class="btn" id="v-top">TOP</button>
+                        <button class="btn" id="v-left">LEFT</button>
+                        <button class="btn" id="v-right">RIGHT</button>
+                    </div>
+                </div>
+
+                <button class="btn" id="downloadBtn" style="color: var(--accent);">DOWNLOAD_SNAPSHOT</button>
+                <button class="btn" id="resetBtn" style="margin-top: 8px; opacity: 0.6;">RESET_ALL</button>
             </div>
         </div>
+        
+        <div id="status" style="font-size: 9px; opacity: 0.5; margin-top: 20px;">INITIALIZING_AI...</div>
     </div>
 
     <script type="importmap">
@@ -123,28 +153,17 @@
         varying float vFlicker;
         uniform float uTime;
         uniform float uPointSize;
-
-        // 伪随机函数
-        float random(vec2 st) {
-            return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
-        }
+        float random(vec2 st) { return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123); }
 
         void main() {
             vColor = color;
-            
-            // 随机闪烁因子
-            vFlicker = random(position.xy + uTime * 0.001);
-            
-            // 随机抖动 (Jitter)
+            vFlicker = random(position.xy + uTime * 0.0005);
             vec3 pos = position;
-            float jitterStrength = 0.5; 
-            pos.x += (random(position.xy + uTime) - 0.5) * jitterStrength;
-            pos.y += (random(position.yx + uTime) - 0.5) * jitterStrength;
-            pos.z += (random(position.zx + uTime) - 0.5) * jitterStrength;
-
-            vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+            // 实时随机抖动
+            pos.x += (random(position.xy + uTime) - 0.5) * 0.5;
+            pos.y += (random(position.yx + uTime) - 0.5) * 0.5;
             
-            // 随距离缩放点大小
+            vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
             gl_PointSize = uPointSize * (1000.0 / -mvPosition.z);
             gl_Position = projectionMatrix * mvPosition;
         }
@@ -155,21 +174,18 @@
         varying float vFlicker;
         uniform sampler2D uMap;
         uniform bool uUseMap;
-
         void main() {
             vec4 texColor = vec4(1.0);
             if(uUseMap) {
                 texColor = texture2D(uMap, gl_PointCoord);
+                if(texColor.a < 0.1) discard;
             } else {
-                // 默认圆点
                 float dist = distance(gl_PointCoord, vec2(0.5));
                 if(dist > 0.5) discard;
                 texColor.a = 1.0 - smoothstep(0.4, 0.5, dist);
             }
-            
-            // 应用闪烁：5% 的概率瞬间变亮
-            float flickerFactor = (vFlicker > 0.98) ? 1.5 : 1.0;
-            gl_FragColor = vec4(vColor * flickerFactor, texColor.a * 0.9);
+            float f = (vFlicker > 0.98) ? 1.5 : 1.0;
+            gl_FragColor = vec4(vColor * f, texColor.a * 0.9);
         }
     </script>
 
@@ -186,103 +202,159 @@
         let lastImg = null, lastDepth = null;
         let clock = new THREE.Clock();
 
-        function init() {
+        async function init() {
+            // Scene Setup
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
-            camera.position.set(0, 300, 1200);
+            camera.position.set(0, 0, 1000);
 
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             document.getElementById('viewport').appendChild(renderer.domElement);
 
             controls = new OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
-            controls.autoRotate = false;
 
-            createBrighterBackground(); // 增亮的初始背景
+            // 初始背景
+            createStarfield();
             
             animate();
-            loadModel();
-            
-            window.addEventListener('resize', onResize);
-            setInterval(() => document.getElementById('clock').innerText = new Date().toLocaleTimeString(), 1000);
+
+            // Load AI Model
+            try {
+                const pipe = await pipeline('depth-estimation', 'Xenova/depth-anything-small-hf');
+                depthEstimator = pipe;
+                document.getElementById('status').innerText = 'ENGINE_READY //';
+            } catch (e) {
+                document.getElementById('status').innerText = 'AI_LOAD_ERROR';
+            }
+
+            // UI Events
+            setupEventListeners();
         }
 
-        // 初始界面粒子（增亮版）
-        function createBrighterBackground() {
-            const count = 5000;
+        function createStarfield() {
+            const count = 6000;
             const geo = new THREE.BufferGeometry();
             const pos = new Float32Array(count * 3);
             const speeds = new Float32Array(count);
-            for(let i=0; i<count; i++) {
-                pos[i*3] = (Math.random() - 0.5) * 3000;
-                pos[i*3+1] = (Math.random() - 0.5) * 3000;
-                pos[i*3+2] = Math.random() * -3000;
-                speeds[i] = 2 + Math.random() * 8;
+            for(let i=0; i<count; i++){
+                pos[i*3]=(Math.random()-0.5)*4000;
+                pos[i*3+1]=(Math.random()-0.5)*4000;
+                pos[i*3+2]=(Math.random()-0.5)*4000;
+                speeds[i]= 1 + Math.random()*5;
             }
-            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-            const mat = new THREE.PointsMaterial({ 
-                size: 4, color: 0x00f2ff, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending 
-            });
+            geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+            const mat = new THREE.PointsMaterial({size: 3, color: 0x00f2ff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending});
             starfield = new THREE.Points(geo, mat);
             starfield.userData.speeds = speeds;
             scene.add(starfield);
         }
 
-        function createCharTexture(char) {
-            if(!char) return null;
-            const canvas = document.createElement('canvas');
-            canvas.width = 128; canvas.height = 128;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = 'white';
-            ctx.font = 'bold 100px monospace';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(char, 64, 64);
-            return new THREE.CanvasTexture(canvas);
-        }
+        function setupEventListeners() {
+            const panel = document.getElementById('panel');
+            
+            // Toggle UI
+            const toggleFunc = () => panel.classList.toggle('hidden');
+            document.getElementById('hideBtn').onclick = toggleFunc;
+            document.getElementById('trigger').onclick = toggleFunc;
 
-        async function loadModel() {
-            try {
-                depthEstimator = await pipeline('depth-estimation', 'Xenova/depth-anything-small-hf', {
-                    progress_callback: p => {
-                        if(p.status === 'progress') {
-                            document.getElementById('status').innerText = `// DOWNLOAD_MODEL_${Math.round(p.progress)}%`;
-                        }
-                    }
-                });
-                document.getElementById('status').innerText = '// ENGINE_READY';
-            } catch(e) { document.getElementById('status').innerText = '// ERR: AI_LOAD_FAIL'; }
-        }
+            // File Upload
+            document.getElementById('imageInput').onchange = async (e) => {
+                const file = e.target.files[0];
+                if(!file || !depthEstimator) return;
 
-        async function handleImage(file) {
-            const reader = new FileReader();
-            reader.onload = async e => {
                 document.getElementById('loader').style.display = 'block';
-                const result = await depthEstimator(e.target.result);
-                lastDepth = result.depth;
-                const img = new Image();
-                img.src = e.target.result;
-                img.onload = () => {
-                    lastImg = img;
-                    rebuildPointCloud();
-                    document.getElementById('loader').style.display = 'none';
-                    document.getElementById('ui-controls').style.display = 'block';
+                const reader = new FileReader();
+                reader.onload = async (ev) => {
+                    const result = await depthEstimator(ev.target.result);
+                    lastDepth = result.depth;
+                    const img = new Image();
+                    img.src = ev.target.result;
+                    img.onload = () => {
+                        lastImg = img;
+                        rebuild();
+                        document.getElementById('loader').style.display = 'none';
+                        document.getElementById('ui-controls').style.display = 'block';
+                    };
                 };
+                reader.readAsDataURL(file);
             };
-            reader.readAsDataURL(file);
+
+            // Sliders
+            document.getElementById('zoomRange').oninput = (e) => {
+                camera.position.setLength(e.target.value);
+                document.getElementById('v-zoom').innerText = e.target.value;
+            };
+            document.getElementById('strideRange').oninput = (e) => {
+                document.getElementById('v-stride').innerText = e.target.value;
+                rebuild();
+            };
+            document.getElementById('depthRange').oninput = (e) => {
+                document.getElementById('v-depth').innerText = e.target.value;
+                if(points) points.scale.z = e.target.value / 200;
+            };
+
+            // View Control
+            const setView = (v) => {
+                const len = camera.position.length();
+                if(v==='front') camera.position.set(0,0,len);
+                if(v==='top') camera.position.set(0,len,0);
+                if(v==='left') camera.position.set(-len,0,0);
+                if(v==='right') camera.position.set(len,0,0);
+                controls.update();
+            };
+            document.getElementById('v-front').onclick = () => setView('front');
+            document.getElementById('v-top').onclick = () => setView('top');
+            document.getElementById('v-left').onclick = () => setView('left');
+            document.getElementById('v-right').onclick = () => setView('right');
+
+            // Character Map
+            document.getElementById('glyphInput').oninput = (e) => {
+                const val = e.target.value.trim();
+                if(!val) currentTexture = null;
+                else {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 64; canvas.height = 64;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = 'white'; ctx.font = 'bold 50px monospace';
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText(val, 32, 32);
+                    currentTexture = new THREE.CanvasTexture(canvas);
+                }
+                if(points) {
+                    points.material.uniforms.uMap.value = currentTexture;
+                    points.material.uniforms.uUseMap.value = !!currentTexture;
+                }
+            };
+
+            // Screenshot
+            document.getElementById('downloadBtn').onclick = () => {
+                const data = renderer.domElement.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = 'spatial_snapshot.png';
+                link.href = data;
+                link.click();
+            };
+
+            // Reset
+            document.getElementById('resetBtn').onclick = () => location.reload();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
         }
 
-        function rebuildPointCloud() {
-            if (!lastImg || !lastDepth) return;
+        function rebuild() {
+            if(!lastImg || !lastDepth) return;
             const { width, height, data } = lastDepth;
             const stride = parseInt(document.getElementById('strideRange').value);
             const zScale = parseFloat(document.getElementById('depthRange').value);
             
-            const pos = [];
-            const col = [];
-
+            const pos = [], col = [];
             const canvas = document.createElement('canvas');
             canvas.width = width; canvas.height = height;
             const ctx = canvas.getContext('2d');
@@ -290,27 +362,19 @@
             const pixels = ctx.getImageData(0, 0, width, height).data;
 
             let min = data[0], max = data[0];
-            for(let i=0; i<data.length; i++) { if(data[i] < min) min = data[i]; if(data[i] > max) max = data[i]; }
+            for(let v of data) { if(v < min) min = v; if(v > max) max = v; }
 
-            const centerX = width / 2;
-            const centerY = height / 2;
-            const maxDist = Math.sqrt(centerX**2 + centerY**2);
+            const cx = width / 2, cy = height / 2;
+            const maxD = Math.sqrt(cx*cx + cy*cy);
 
             for (let y = 0; y < height; y += stride) {
                 for (let x = 0; x < width; x += stride) {
                     const i = y * width + x;
-                    
-                    // --- 边缘弥散逻辑 ---
-                    const dx = x - centerX;
-                    const dy = y - centerY;
-                    const dist = Math.sqrt(dx*dx + dy*dy) / maxDist;
-                    // 越靠近边缘，被“随机抛弃”的概率越大
-                    if (Math.random() < dist * 0.7) continue; 
+                    const d = Math.sqrt((x-cx)**2 + (y-cy)**2) / maxD;
+                    if(Math.random() < d * 0.6) continue;
 
-                    const normZ = (data[i] - min) / (max - min);
-                    
-                    // --- 坐标修正：(height - y) 解决倒置 ---
-                    pos.push( (x - centerX), (centerY - y), normZ * zScale );
+                    const nz = (data[i] - min) / (max - min);
+                    pos.push(x - cx, cy - y, nz * zScale);
                     col.push(pixels[i*4]/255, pixels[i*4+1]/255, pixels[i*4+2]/255);
                 }
             }
@@ -323,87 +387,40 @@
             const mat = new THREE.ShaderMaterial({
                 uniforms: {
                     uTime: { value: 0 },
-                    uPointSize: { value: parseFloat(document.getElementById('sizeRange').value) },
+                    uPointSize: { value: 3.0 },
                     uMap: { value: currentTexture },
                     uUseMap: { value: !!currentTexture }
                 },
                 vertexShader: document.getElementById('vertexShader').textContent,
                 fragmentShader: document.getElementById('fragmentShader').textContent,
-                transparent: true,
-                vertexColors: true,
-                depthWrite: false,
-                blending: THREE.NormalBlending
+                transparent: true, vertexColors: true, depthWrite: false, blending: THREE.AdditiveBlending
             });
 
             if(points) scene.remove(points);
             if(starfield) starfield.visible = false;
-
             points = new THREE.Points(geo, mat);
             
-            // --- 自动缩放以铺满屏幕 ---
-            const fov = camera.fov * (Math.PI / 180);
-            const targetH = 2 * Math.tan(fov / 2) * camera.position.z;
-            const s = (targetH / height) * 0.85; 
+            // 自动缩放适配
+            const s = 800 / Math.max(width, height);
             points.scale.set(s, s, s);
-            
             scene.add(points);
         }
 
         function animate() {
             requestAnimationFrame(animate);
-            const time = clock.getElapsedTime();
-
+            const t = clock.getElapsedTime();
             if(starfield && starfield.visible) {
                 const p = starfield.geometry.attributes.position.array;
                 const s = starfield.userData.speeds;
-                for(let i=0; i<s.length; i++) {
-                    p[i*3+2] += s[i];
-                    if(p[i*3+2] > 1000) p[i*3+2] = -2000;
+                for(let i=0; i<s.length; i++){
+                    p[i*3+2] += s[i]; if(p[i*3+2] > 2000) p[i*3+2] = -2000;
                 }
                 starfield.geometry.attributes.position.needsUpdate = true;
             }
-
-            if(points) {
-                points.material.uniforms.uTime.value = time * 1000;
-            }
-
+            if(points) points.material.uniforms.uTime.value = t * 1000;
             controls.update();
             renderer.render(scene, camera);
         }
-
-        function onResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        // --- 交互 ---
-        document.getElementById('imageInput').addEventListener('change', e => { if(e.target.files[0]) handleImage(e.target.files[0]); });
-        
-        document.getElementById('glyphInput').addEventListener('input', e => {
-            currentTexture = createCharTexture(e.target.value.trim());
-            if(points) {
-                points.material.uniforms.uMap.value = currentTexture;
-                points.material.uniforms.uUseMap.value = !!currentTexture;
-            }
-        });
-
-        document.getElementById('strideRange').addEventListener('input', e => {
-            document.getElementById('v-stride').innerText = e.target.value;
-            rebuildPointCloud(); // 这里调整间距会触发重新计算位置，但 scale 不变
-        });
-
-        document.getElementById('depthRange').addEventListener('input', e => {
-            document.getElementById('v-depth').innerText = e.target.value;
-            if(points) points.scale.z = e.target.value / 180;
-        });
-
-        document.getElementById('sizeRange').addEventListener('input', e => {
-            document.getElementById('v-size').innerText = e.target.value;
-            if(points) points.material.uniforms.uPointSize.value = parseFloat(e.target.value);
-        });
-
-        document.getElementById('resetCam').onclick = () => controls.reset();
 
         init();
     </script>
