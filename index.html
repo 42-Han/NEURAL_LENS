@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEURAL LENS | V23</title>
+    <title>NEURAL LENS | V24</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
@@ -11,7 +11,7 @@
             --accent: #00f2ff;
             --ui-bg: rgba(10, 20, 30, 0.85);
             --ui-border: rgba(0, 242, 255, 0.3);
-            --panel-w: 340px;
+            --panel-w: 350px;
             --transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
@@ -19,6 +19,7 @@
             margin: 0; padding: 0; width: 100%; height: 100%; 
             background: #000; color: #fff; 
             font-family: 'Segoe UI', sans-serif; overflow: hidden;
+            transition: background 0.5s ease;
         }
 
         #viewport { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
@@ -100,9 +101,17 @@
         .modal-overlay.show { display: flex; opacity: 1; }
         .modal-box { background: var(--ui-bg); border: 1px solid var(--ui-border); padding: 35px 30px; border-radius: 12px; width: 340px; box-sizing: border-box; box-shadow: 0 20px 60px rgba(0,0,0,0.9); }
         .modal-title { font-size: 14px; color: var(--accent); margin-bottom: 25px; letter-spacing: 3px; text-align: center; }
-        .dl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
+        .dl-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 15px; }
 
         @keyframes pulseRec { 0% { box-shadow: 0 0 10px red; } 50% { box-shadow: 0 0 35px red; } 100% { box-shadow: 0 0 10px red; } }
+
+        /* 颜色预设方块 */
+        .color-swatch { width: 22px; height: 22px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; transition: 0.2s; }
+        .color-swatch:hover { border-color: var(--accent); transform: scale(1.1); }
+        
+        .ai-check-label { display:flex; align-items:center; font-size:11px; cursor:pointer; color:var(--accent); font-weight: bold; letter-spacing: 1px; margin-bottom: 8px; }
+        .ai-check-label input { margin-right:10px; accent-color: var(--accent); cursor: pointer; width: 14px; height: 14px; }
+        .sub-setting { margin-top:10px; padding-left:24px; border-left:1px solid rgba(0,242,255,0.2); display: none; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
 </head>
@@ -144,7 +153,7 @@
     </div>
 
     <div class="glass-panel" id="panel">
-        <div style="margin-bottom: 25px;">
+        <div style="margin-bottom: 20px;">
             <label class="action-btn" style="display:block; font-size: 9px; border-style: dashed;">
                 RE-UPLOAD SOURCE
                 <input type="file" id="reInput" style="display:none;" accept="image/*">
@@ -154,12 +163,45 @@
         <div style="flex: 1; overflow-y: auto; padding-right: 5px;">
             
             <div class="control-group">
-                <div class="label-box"><span>AI Enhancements</span></div>
-                <div class="grid-2">
-                    <button class="dl-btn" id="btnLoadDepth" style="border-color: var(--accent); color: var(--accent);">3D DEPTH</button>
-                    <button class="dl-btn" id="btnLoadEdge" style="border-color: var(--accent); color: var(--accent);">CONTOUR</button>
+                <div class="label-box"><span>Environment Base</span></div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="color" id="bgColorPicker" value="#000000" style="width:24px; height:24px; border:none; background:transparent; cursor:pointer; padding:0;">
+                    <div class="color-swatch" style="background:#000000;" onclick="setBgColor('#000000')"></div>
+                    <div class="color-swatch" style="background:#0a141e;" onclick="setBgColor('#0a141e')"></div>
+                    <div class="color-swatch" style="background:#1c0d16;" onclick="setBgColor('#1c0d16')"></div>
+                    <div class="color-swatch" style="background:#0f1710;" onclick="setBgColor('#0f1710')"></div>
                 </div>
-                <div id="aiProgressBox" style="display:none; margin-top:8px; background: rgba(0,0,0,0.3); padding: 8px; border: 1px solid var(--ui-border); border-radius: 4px;">
+            </div>
+
+            <div class="control-group" style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
+                
+                <div style="margin-bottom: 12px;">
+                    <label class="ai-check-label">
+                        <input type="checkbox" id="cbDepth"> ENABLE 3D DEPTH
+                    </label>
+                    <div class="sub-setting" id="depthSettings">
+                        <div class="label-box" style="margin-top:5px;"><span>Z-Intensity</span><span id="v-depth">200</span></div>
+                        <input type="range" id="depthRange" min="0" max="800" value="200">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="ai-check-label">
+                        <input type="checkbox" id="cbEdge"> ENABLE CONTOUR
+                    </label>
+                    <div class="sub-setting" id="edgeSettings">
+                        <div class="label-box" style="margin-top:5px;"><span>Point / Glyph Color</span></div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <input type="color" id="ptColorPicker" value="#00f2ff" style="width:24px; height:24px; border:none; background:transparent; cursor:pointer; padding:0;">
+                            <div class="color-swatch" style="background:#00f2ff;" onclick="setPtColor('#00f2ff')"></div>
+                            <div class="color-swatch" style="background:#00ffaa;" onclick="setPtColor('#00ffaa')"></div>
+                            <div class="color-swatch" style="background:#ff0055;" onclick="setPtColor('#ff0055')"></div>
+                            <div class="color-swatch" style="background:#ffffff;" onclick="setPtColor('#ffffff')"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="aiProgressBox" style="display:none; margin-top:12px; background: rgba(0,0,0,0.5); padding: 8px; border-radius: 4px;">
                     <div style="font-size: 9px; color: var(--accent); margin-bottom: 5px; font-family: monospace;" id="aiProgressText">DOWNLOADING...</div>
                     <div style="width: 100%; height: 2px; background: rgba(255,255,255,0.1);">
                         <div id="aiProgressBar" style="width: 0%; height: 100%; background: var(--accent); transition: width 0.2s;"></div>
@@ -209,20 +251,25 @@
                 <input type="range" id="diffuseRange" min="0" max="1" step="0.05" value="0.6">
             </div>
 
-            <div class="control-group" id="depthControlGroup" style="opacity: 0.4; pointer-events: none;">
-                <div class="label-box"><span>Z-Intensity (Needs Depth)</span><span id="v-depth">200</span></div>
-                <input type="range" id="depthRange" min="0" max="800" value="200" disabled>
-            </div>
-
             <div class="control-group">
                 <div class="label-box"><span>Zoom / Magnify</span><span id="v-zoom">20</span></div>
                 <input type="range" id="zoomRange" min="0" max="100" value="20">
             </div>
 
             <div class="control-group">
+                <div class="label-box"><span>Orientation</span></div>
+                <div class="grid-2">
+                    <button class="dl-btn" id="v-front">FRONT</button>
+                    <button class="dl-btn" id="v-top">TOP</button>
+                    <button class="dl-btn" id="v-left">LEFT</button>
+                    <button class="dl-btn" id="v-right">RIGHT</button>
+                </div>
+            </div>
+
+            <div class="control-group">
                 <div class="label-box"><span>Camera Memory</span></div>
-                <button class="action-btn" id="btnSaveView" style="width:100%; margin-bottom:8px; border-style: dashed;">SAVE CURRENT VIEW</button>
-                <div id="savedViewsList" class="grid-2"></div>
+                <button class="action-btn" id="btnSaveView" style="width:100%; margin-bottom:8px; border-style: dashed; color: var(--accent);">+ SAVE CURRENT VIEW</button>
+                <div id="savedViewsList" style="display:flex; flex-direction: column; gap:6px;"></div>
             </div>
 
             <button class="action-btn primary" onclick="openExportModal()" style="width:100%; margin-top:20px;">EXPORT MENU</button>
@@ -266,6 +313,10 @@
         uniform float uTime;
         uniform float uCharCount;
         uniform float uFlickerFreq;
+        
+        // 颜色覆写 Uniforms
+        uniform vec3 uPointColor;
+        uniform bool uIsEdgeMode;
 
         float random(vec2 st) { return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123); }
 
@@ -287,7 +338,6 @@
                 texColor.a = 1.0 - smoothstep(0.4, 0.5, dist);
             }
 
-            // 新增：动态频控闪烁算法
             float f = 1.0;
             if (uFlickerFreq > 0.0) {
                 float timeVar = uTime * 0.001 * uFlickerFreq;
@@ -297,7 +347,13 @@
                 f = mix(smoothWave, erraticWave, blend);
             }
 
-            gl_FragColor = vec4(vColor * f, texColor.a * 0.9);
+            // 轮廓模式专属颜色覆写
+            vec3 finalColor = vColor;
+            if (uIsEdgeMode) {
+                finalColor = uPointColor; 
+            }
+
+            gl_FragColor = vec4(finalColor * f, texColor.a * 0.9);
         }
     </script>
 
@@ -316,48 +372,53 @@
         window.isDepthMode = false;
         window.isEdgeMode = false;
         window.camTransition = { active: false, progress: 0 };
-        window.savedViews = [];
+        window.savedViews = {};
 
         let cachedData = { pixels: null, depth: null, edges: null, minZ: 0, maxZ: 1, width: 0, height: 0 };
         const clock = new THREE.Clock();
 
+        // 供 HTML onclick 调用的全局函数
         window.openExportModal = () => document.getElementById('exportModal').classList.add('show');
         window.closeExportModal = () => document.getElementById('exportModal').classList.remove('show');
+
+        window.setBgColor = (hex) => {
+            document.getElementById('bgColorPicker').value = hex;
+            document.body.style.background = hex;
+        };
+        window.setPtColor = (hex) => {
+            document.getElementById('ptColorPicker').value = hex;
+            if (points && window.isEdgeMode) {
+                points.material.uniforms.uPointColor.value = new THREE.Color(hex);
+            }
+        };
+
+        document.getElementById('bgColorPicker').addEventListener('input', (e) => window.setBgColor(e.target.value));
+        document.getElementById('ptColorPicker').addEventListener('input', (e) => window.setPtColor(e.target.value));
 
         window.exportFile = async (format) => {
             const baseName = document.getElementById('fileName').value || 'NEURAL_LENS_RECON';
             if(format === 'gif') { recordGIF(baseName); return; }
             
             renderer.render(scene, camera);
-            
             if(format === 'svg') {
                 const dataUrl = renderer.domElement.toDataURL('image/png', 1.0);
-                const w = renderer.domElement.width;
-                const h = renderer.domElement.height;
+                const w = renderer.domElement.width; const h = renderer.domElement.height;
                 const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><image href="${dataUrl}" width="${w}" height="${h}"/></svg>`;
                 const blob = new Blob([svgStr], {type: 'image/svg+xml'});
-                const link = document.createElement('a');
-                link.download = `${baseName}.svg`;
-                link.href = URL.createObjectURL(blob);
-                link.click();
-                closeExportModal();
-                return;
+                const link = document.createElement('a'); link.download = `${baseName}.svg`; link.href = URL.createObjectURL(blob);
+                link.click(); closeExportModal(); return;
             }
 
-            const link = document.createElement('a');
-            link.download = `${baseName}.${format}`;
+            const link = document.createElement('a'); link.download = `${baseName}.${format}`;
             link.href = renderer.domElement.toDataURL(`image/${format === 'png' ? 'png' : 'jpeg'}`, 0.9);
-            link.click();
-            closeExportModal();
+            link.click(); closeExportModal();
         };
 
         window.startVideoRecording = () => {
             closeExportModal();
             const baseName = document.getElementById('fileName').value || 'NEURAL_LENS_RECON';
             
-            const stopBtn = document.createElement('button');
-            stopBtn.id = 'stopRecBtn';
-            stopBtn.innerText = 'STOP RECORDING';
+            const stopBtn = document.createElement('button'); stopBtn.id = 'stopRecBtn'; stopBtn.innerText = 'STOP RECORDING';
             stopBtn.style.cssText = 'position:fixed; top:40px; left:50%; transform:translateX(-50%); z-index:9999; padding:15px 40px; background:red; color:white; border:2px solid #ffaaaa; border-radius:30px; font-weight:bold; cursor:pointer; font-family:"Press Start 2P", monospace; font-size:12px; animation: pulseRec 1.5s infinite; transition: 0.3s;';
             document.body.appendChild(stopBtn);
 
@@ -367,22 +428,17 @@
                 options = { mimeType: 'video/webm; codecs=vp8' };
                 if (!MediaRecorder.isTypeSupported(options.mimeType)) options = { mimeType: 'video/webm' };
             }
-
             const mediaRecorder = new MediaRecorder(stream, options);
             const recordedChunks = [];
-
             mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
-
             mediaRecorder.onstop = () => {
                 const blob = new Blob(recordedChunks, { type: 'video/webm' });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none'; a.href = url; a.download = `${baseName}.webm`;
+                const a = document.createElement('a'); a.style.display = 'none'; a.href = url; a.download = `${baseName}.webm`;
                 document.body.appendChild(a); a.click();
                 setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 100);
                 stopBtn.remove();
             };
-
             mediaRecorder.start();
             stopBtn.onclick = () => mediaRecorder.stop();
         };
@@ -390,8 +446,7 @@
         async function recordGIF(name) {
             document.getElementById('exportModal').classList.remove('show');
             document.getElementById('loader').style.display = 'flex';
-            const loaderTxt = document.getElementById('loaderText');
-            loaderTxt.innerText = 'INITIALIZING_GIF_ENGINE...';
+            const loaderTxt = document.getElementById('loaderText'); loaderTxt.innerText = 'INITIALIZING_GIF_ENGINE...';
             let workerUrl;
             try {
                 const workerBlob = await fetch('https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js').then(r => r.blob());
@@ -403,16 +458,11 @@
             const capture = setInterval(() => {
                 renderer.render(scene, camera);
                 gif.addFrame(renderer.domElement, {copy: true, delay: 100});
-                count++;
-                loaderTxt.innerText = `RECORDING: ${Math.round((count/maxFrames)*100)}%`;
+                count++; loaderTxt.innerText = `RECORDING: ${Math.round((count/maxFrames)*100)}%`;
                 if(count >= maxFrames) {
-                    clearInterval(capture);
-                    loaderTxt.innerText = 'ENCODING_GIF...';
+                    clearInterval(capture); loaderTxt.innerText = 'ENCODING_GIF...';
                     gif.on('finished', (blob) => {
-                        const link = document.createElement('a');
-                        link.download = `${name}.gif`;
-                        link.href = URL.createObjectURL(blob);
-                        link.click();
+                        const link = document.createElement('a'); link.download = `${name}.gif`; link.href = URL.createObjectURL(blob); link.click();
                         document.getElementById('loader').style.display = 'none';
                     });
                     gif.render();
@@ -449,51 +499,51 @@
                     idleTimer = setTimeout(() => panel.classList.add('hidden'), 4000);
                 }
             };
-            panel.addEventListener('mousemove', reset);
-            panel.addEventListener('mousedown', reset);
-            panel.addEventListener('input', reset);
+            panel.addEventListener('mousemove', reset); panel.addEventListener('mousedown', reset); panel.addEventListener('input', reset);
         }
 
         function updateRandomAtlas() {
             const useNum = document.getElementById('catNumbers') ? document.getElementById('catNumbers').checked : true;
             const useLet = document.getElementById('catLetters') ? document.getElementById('catLetters').checked : true;
             const useSym = document.getElementById('catSymbols') ? document.getElementById('catSymbols').checked : true;
-
             let chars = "";
-            if(useNum) chars += "0123456789";
-            if(useLet) chars += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            if(useSym) chars += "<>[]{}#@$*&!?%:=+-_^/()*";
+            if(useNum) chars += "0123456789"; if(useLet) chars += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; if(useSym) chars += "<>[]{}#@$*&!?%:=+-_^/()*";
             if(chars === "") chars = "0101"; 
 
-            const canvas = document.createElement('canvas');
-            canvas.width = 512; canvas.height = 512;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = 'white'; ctx.font = 'bold 50px monospace';
+            const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 512;
+            const ctx = canvas.getContext('2d'); ctx.fillStyle = 'white'; ctx.font = 'bold 50px monospace';
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             
             for(let i=0; i<64; i++) {
-                const x = (i % 8) * 64 + 32;
-                const y = Math.floor(i / 8) * 64 + 32;
+                const x = (i % 8) * 64 + 32; const y = Math.floor(i / 8) * 64 + 32;
                 ctx.fillText(chars[i % chars.length], x, y);
             }
-            
             if (atlasTexture) atlasTexture.dispose();
-            atlasTexture = new THREE.CanvasTexture(canvas);
-            atlasTexture.flipY = false;
+            atlasTexture = new THREE.CanvasTexture(canvas); atlasTexture.flipY = false;
             
             if(points && document.getElementById('glyphMode').value === 'random') {
                 points.material.uniforms.uMap.value = atlasTexture;
             }
         }
 
+        function updateCustomAtlas(charStr) {
+            const chars = charStr.trim().split('');
+            if(chars.length === 0) return;
+            customCharCount = chars.length;
+            const canv = document.createElement('canvas'); canv.width = 512; canv.height = 512;
+            const ctx = canv.getContext('2d'); ctx.fillStyle = 'white'; ctx.font = 'bold 64px monospace';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            chars.forEach((c, i) => {
+                const x = (i % 8) * 64 + 32; const y = Math.floor(i / 8) * 64 + 32; ctx.fillText(c, x, y);
+            });
+            if(customAtlasTexture) customAtlasTexture.dispose();
+            customAtlasTexture = new THREE.CanvasTexture(canv); customAtlasTexture.flipY = false;
+        }
+
         function createAmbientStars() {
-            const count = 15000; 
-            const geo = new THREE.BufferGeometry();
-            const pos = new Float32Array(count * 3);
+            const count = 15000; const geo = new THREE.BufferGeometry(); const pos = new Float32Array(count * 3);
             for(let i=0; i<count; i++){
-                pos[i*3]=(Math.random()-0.5)*8000;
-                pos[i*3+1]=(Math.random()-0.5)*8000;
-                pos[i*3+2]=(Math.random()-0.5)*8000;
+                pos[i*3]=(Math.random()-0.5)*8000; pos[i*3+1]=(Math.random()-0.5)*8000; pos[i*3+2]=(Math.random()-0.5)*8000;
             }
             geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
             starfield = new THREE.Points(geo, new THREE.PointsMaterial({size: 4, color: 0x00f2ff, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending}));
@@ -504,17 +554,19 @@
             const handleUpload = async (e) => {
                 const file = e.target.files[0]; if(!file) return;
                 document.getElementById('loader').style.display = 'flex';
+                document.getElementById('loaderText').innerText = 'INITIALIZING 2D TOPOLOGY...';
+                
                 const reader = new FileReader();
                 reader.onload = async (ev) => {
                     const img = new Image();
-                    img.src = ev.target.result;
                     lastImgSrc = ev.target.result;
+                    img.src = ev.target.result;
                     img.onload = () => {
                         const width = img.width, height = img.height;
                         const canv = document.createElement('canvas'); canv.width = width; canv.height = height;
                         const ctx = canv.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
                         
-                        // 初始零深度单维解析
+                        // 无模型秒出：零深度全景解析
                         const flatDepth = new Float32Array(width * height).fill(0);
                         cachedData = { pixels: ctx.getImageData(0, 0, width, height).data, depth: flatDepth, edges: null, width, height, minZ: 0, maxZ: 1 };
                         
@@ -539,90 +591,80 @@
             document.getElementById('hidePanel').onclick = () => document.getElementById('panel').classList.add('hidden');
             document.getElementById('openUI').onclick = () => document.getElementById('panel').classList.toggle('hidden');
 
-            // AI 模块按需加载
-            document.getElementById('btnLoadDepth').onclick = async function() {
-                if(!cachedData.pixels || window.isDepthMode) return;
-                this.innerText = "LOADING...";
-                document.getElementById('aiProgressBox').style.display = 'block';
+            // AI 按需下载与展开交互
+            document.getElementById('cbDepth').addEventListener('change', async function() {
+                if(this.checked) {
+                    if(!cachedData.pixels) { this.checked = false; return; }
+                    const dSet = document.getElementById('depthSettings');
+                    dSet.style.display = 'block';
 
-                if(!depthEstimator) {
-                    depthEstimator = await pipeline('depth-estimation', 'Xenova/depth-anything-small-hf', {
-                        progress_callback: (d) => {
-                            if (d.status === 'progress') {
-                                const p = Math.max(0, Math.min(100, Math.round(d.progress)));
-                                document.getElementById('aiProgressBar').style.width = p + '%';
-                                document.getElementById('aiProgressText').innerText = `DOWNLOADING 3D CORE... ${p}%`;
+                    document.getElementById('aiProgressBox').style.display = 'block';
+
+                    if(!depthEstimator) {
+                        depthEstimator = await pipeline('depth-estimation', 'Xenova/depth-anything-small-hf', {
+                            progress_callback: (d) => {
+                                if (d.status === 'progress') {
+                                    const p = Math.max(0, Math.min(100, Math.round(d.progress)));
+                                    document.getElementById('aiProgressBar').style.width = p + '%';
+                                    document.getElementById('aiProgressText').innerText = `DOWNLOADING 3D CORE... ${p}%`;
+                                }
+                            }
+                        });
+                    }
+                    
+                    document.getElementById('aiProgressText').innerText = `ANALYZING DEPTH...`;
+                    await new Promise(r => setTimeout(r, 50)); 
+                    const result = await depthEstimator(lastImgSrc);
+                    const depthInfo = result.depth;
+                    
+                    let minZ = Infinity, maxZ = -Infinity;
+                    for(let v of depthInfo.data) { if(v < minZ) minZ = v; if(v > maxZ) maxZ = v; }
+                    cachedData.depth = depthInfo.data; cachedData.minZ = minZ; cachedData.maxZ = maxZ;
+                    
+                    window.isDepthMode = true;
+                    document.getElementById('aiProgressBox').style.display = 'none';
+                    renderTopology();
+                } else {
+                    window.isDepthMode = false;
+                    document.getElementById('depthSettings').style.display = 'none';
+                    renderTopology();
+                }
+            });
+
+            document.getElementById('cbEdge').addEventListener('change', async function() {
+                if(this.checked) {
+                    if(!cachedData.pixels) { this.checked = false; return; }
+                    const eSet = document.getElementById('edgeSettings');
+                    eSet.style.display = 'block';
+
+                    if(!cachedData.edges) {
+                        document.getElementById('aiProgressBox').style.display = 'block';
+                        document.getElementById('aiProgressText').innerText = `EXTRACTING CONTOURS...`;
+                        await new Promise(r => setTimeout(r, 50));
+
+                        const w = cachedData.width, h = cachedData.height, px = cachedData.pixels;
+                        const edges = new Uint8Array(w * h);
+                        for(let y=1; y<h-1; y++){
+                            for(let x=1; x<w-1; x++){
+                                const i = (y*w + x)*4, right = (y*w + (x+1))*4, down = ((y+1)*w + x)*4;
+                                const l = px[i]*0.3 + px[i+1]*0.59 + px[i+2]*0.11;
+                                const lr = px[right]*0.3 + px[right+1]*0.59 + px[right+2]*0.11;
+                                const ld = px[down]*0.3 + px[down+1]*0.59 + px[down+2]*0.11;
+                                edges[y*w + x] = (Math.abs(l - lr) + Math.abs(l - ld)) > 20 ? 1 : 0;
                             }
                         }
-                    });
-                }
-                
-                document.getElementById('aiProgressText').innerText = `ANALYZING DEPTH...`;
-                await new Promise(r => setTimeout(r, 50)); 
-                const result = await depthEstimator(lastImgSrc);
-                const depthInfo = result.depth;
-                
-                let minZ = Infinity, maxZ = -Infinity;
-                for(let v of depthInfo.data) { if(v < minZ) minZ = v; if(v > maxZ) maxZ = v; }
-                cachedData.depth = depthInfo.data; cachedData.minZ = minZ; cachedData.maxZ = maxZ;
-                
-                window.isDepthMode = true;
-                document.getElementById('aiProgressBox').style.display = 'none';
-                this.innerText = "3D DEPTH: ACTIVE";
-                this.style.background = "var(--accent)";
-                this.style.color = "#000";
-
-                const dGroup = document.getElementById('depthControlGroup');
-                dGroup.style.opacity = '1';
-                dGroup.style.pointerEvents = 'auto';
-                document.getElementById('depthRange').disabled = false;
-                renderTopology();
-            };
-
-            document.getElementById('btnLoadEdge').onclick = async function() {
-                if(!cachedData.pixels) return;
-                if(window.isEdgeMode) {
-                    window.isEdgeMode = false;
-                    this.innerText = "CONTOUR: OFF";
-                    this.style.background = "transparent";
-                    this.style.color = "var(--accent)";
+                        cachedData.edges = edges;
+                        document.getElementById('aiProgressBox').style.display = 'none';
+                    }
+                    window.isEdgeMode = true;
                     renderTopology();
-                    return;
+                } else {
+                    window.isEdgeMode = false;
+                    document.getElementById('edgeSettings').style.display = 'none';
+                    renderTopology();
                 }
-                
-                if(!cachedData.edges) {
-                    this.innerText = "LOADING...";
-                    document.getElementById('aiProgressBox').style.display = 'block';
-                    for(let i=0; i<=100; i+=25) {
-                        document.getElementById('aiProgressBar').style.width = i + '%';
-                        document.getElementById('aiProgressText').innerText = `DOWNLOADING EDGE KERNEL... ${i}%`;
-                        await new Promise(r => setTimeout(r, 100));
-                    }
-                    document.getElementById('aiProgressText').innerText = `EXTRACTING CONTOURS...`;
-                    await new Promise(r => setTimeout(r, 100));
+            });
 
-                    const w = cachedData.width, h = cachedData.height, px = cachedData.pixels;
-                    const edges = new Uint8Array(w * h);
-                    for(let y=1; y<h-1; y++){
-                        for(let x=1; x<w-1; x++){
-                            const i = (y*w + x)*4, right = (y*w + (x+1))*4, down = ((y+1)*w + x)*4;
-                            const l = px[i]*0.3 + px[i+1]*0.59 + px[i+2]*0.11;
-                            const lr = px[right]*0.3 + px[right+1]*0.59 + px[right+2]*0.11;
-                            const ld = px[down]*0.3 + px[down+1]*0.59 + px[down+2]*0.11;
-                            edges[y*w + x] = (Math.abs(l - lr) + Math.abs(l - ld)) > 20 ? 1 : 0;
-                        }
-                    }
-                    cachedData.edges = edges;
-                    document.getElementById('aiProgressBox').style.display = 'none';
-                }
-                window.isEdgeMode = true;
-                this.innerText = "CONTOUR: ACTIVE";
-                this.style.background = "var(--accent)";
-                this.style.color = "#000";
-                renderTopology();
-            };
-
-            // 滑块控制
             const sliders = ['strideRange', 'psizeRange', 'zoomRange', 'depthRange', 'diffuseRange', 'flickerRange'];
             sliders.forEach(id => {
                 document.getElementById(id).oninput = (e) => {
@@ -645,59 +687,87 @@
             };
 
             ['catNumbers', 'catLetters', 'catSymbols'].forEach(id => {
-                document.getElementById(id).onchange = () => {
-                    updateRandomAtlas();
-                    renderTopology();
-                };
+                document.getElementById(id).onchange = () => { updateRandomAtlas(); renderTopology(); };
             });
 
             document.getElementById('glyphInput').oninput = (e) => {
-                const chars = e.target.value.trim().split('');
-                if(chars.length === 0) return;
-                customCharCount = chars.length;
-                const canv = document.createElement('canvas'); canv.width = 512; canv.height = 512;
-                const ctx = canv.getContext('2d'); ctx.fillStyle = 'white'; ctx.font = 'bold 64px monospace';
-                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                chars.forEach((c, i) => {
-                    const x = (i % 8) * 64 + 32; const y = Math.floor(i / 8) * 64 + 32;
-                    ctx.fillText(c, x, y);
-                });
-                customAtlasTexture = new THREE.CanvasTexture(canv);
-                customAtlasTexture.flipY = false;
+                updateCustomAtlas(e.target.value);
                 renderTopology();
             };
 
-            // 保存与切换镜头
+            // 高级参数级摄像机记忆
             document.getElementById('btnSaveView').onclick = () => {
-                const v = { pos: camera.position.clone(), target: controls.target.clone() };
-                window.savedViews.push(v);
-                const idx = window.savedViews.length;
-                const btn = document.createElement('button');
-                btn.className = 'dl-btn';
-                btn.innerText = `VIEW ${idx}`;
-                btn.onclick = () => {
-                    window.camTransition = {
-                        active: true, progress: 0,
-                        startPos: camera.position.clone(), startTgt: controls.target.clone(),
-                        endPos: v.pos, endTgt: v.target
-                    };
+                const id = Date.now();
+                const v = {
+                    pos: camera.position.clone(), target: controls.target.clone(),
+                    psize: document.getElementById('psizeRange').value,
+                    stride: document.getElementById('strideRange').value,
+                    diffuse: document.getElementById('diffuseRange').value,
+                    depth: document.getElementById('depthRange').value,
+                    zoom: document.getElementById('zoomRange').value,
+                    flicker: document.getElementById('flickerRange').value,
+                    mode: document.getElementById('glyphMode').value,
+                    customChars: document.getElementById('glyphInput').value,
+                    isDepth: window.isDepthMode, isEdge: window.isEdgeMode,
+                    ptCol: document.getElementById('ptColorPicker').value,
+                    bgCol: document.getElementById('bgColorPicker').value,
+                    rNum: document.getElementById('catNumbers').checked,
+                    rLet: document.getElementById('catLetters').checked,
+                    rSym: document.getElementById('catSymbols').checked
                 };
-                document.getElementById('savedViewsList').appendChild(btn);
+                window.savedViews[id] = v;
+
+                const cont = document.createElement('div'); cont.style.cssText = 'display:flex; gap:4px;';
+                const btn = document.createElement('button'); btn.className = 'dl-btn'; btn.style.flex = '1';
+                btn.innerText = `VIEW MEMORY ${Object.keys(window.savedViews).length}`;
+                
+                btn.onclick = () => {
+                    // UI & Global Status Restore
+                    ['psize','stride','diffuse','depth','zoom','flicker'].forEach(key => {
+                        document.getElementById(`${key}Range`).value = v[key];
+                        document.getElementById(`v-${key}`).innerText = v[key];
+                    });
+                    document.getElementById('glyphMode').value = v.mode;
+                    document.getElementById('glyphInput').value = v.customChars;
+                    
+                    document.getElementById('catNumbers').checked = v.rNum;
+                    document.getElementById('catLetters').checked = v.rLet;
+                    document.getElementById('catSymbols').checked = v.rSym;
+
+                    window.isDepthMode = v.isDepth; window.isEdgeMode = v.isEdge;
+                    document.getElementById('cbDepth').checked = v.isDepth;
+                    document.getElementById('cbEdge').checked = v.isEdge;
+                    document.getElementById('depthSettings').style.display = v.isDepth ? 'block' : 'none';
+                    document.getElementById('edgeSettings').style.display = v.isEdge ? 'block' : 'none';
+                    document.getElementById('glyphInput').style.display = (v.mode === 'custom') ? 'block' : 'none';
+                    document.getElementById('randomCategories').style.display = (v.mode === 'random') ? 'block' : 'none';
+
+                    window.setBgColor(v.bgCol); window.setPtColor(v.ptCol);
+                    if(v.mode === 'random') updateRandomAtlas();
+                    if(v.mode === 'custom') updateCustomAtlas(v.customChars);
+
+                    // Rebuild geo immediately
+                    renderTopology();
+                    
+                    // Smooth Cam Transition
+                    window.camTransition = { active: true, progress: 0, startPos: camera.position.clone(), startTgt: controls.target.clone(), endPos: v.pos, endTgt: v.target };
+                };
+
+                const del = document.createElement('button'); del.className = 'dl-btn'; del.style.cssText = 'width:30px; border-color:#ff0055; color:#ff0055;';
+                del.innerText = 'X';
+                del.onclick = () => { delete window.savedViews[id]; cont.remove(); };
+
+                cont.appendChild(btn); cont.appendChild(del);
+                document.getElementById('savedViewsList').appendChild(cont);
             };
 
             const views = {'v-front':[0,0,1], 'v-top':[0,1,0], 'v-left':[-1,0,0], 'v-right':[1,0,0]};
-            Object.keys(views).forEach(k => {
-                const element = document.getElementById(k);
-                if(element) {
-                    element.onclick = () => {
-                        const d = camera.position.length();
-                        window.camTransition = {
-                            active: true, progress: 0,
-                            startPos: camera.position.clone(), startTgt: controls.target.clone(),
-                            endPos: new THREE.Vector3(views[k][0]*d, views[k][1]*d, views[k][2]*d), endTgt: new THREE.Vector3(0,0,0)
-                        };
-                    };
-                }
+            Object.keys(views).forEach(k => document.getElementById(k).onclick = () => {
+                const d = camera.position.length();
+                window.camTransition = {
+                    active: true, progress: 0, startPos: camera.position.clone(), startTgt: controls.target.clone(),
+                    endPos: new THREE.Vector3(views[k][0]*d, views[k][1]*d, views[k][2]*d), endTgt: new THREE.Vector3(0,0,0)
+                };
             });
         }
 
@@ -716,6 +786,7 @@
             const diffStr = parseFloat(document.getElementById('diffuseRange').value);
             const zInten = parseFloat(document.getElementById('depthRange').value);
             const freq = parseFloat(document.getElementById('flickerRange').value);
+            const ptColorHex = document.getElementById('ptColorPicker').value;
             const pos = [], col = [], rnd = [];
             const cx = width/2, cy = height/2, border = Math.max(width, height) * 0.5;
             const mode = document.getElementById('glyphMode').value;
@@ -724,7 +795,6 @@
                 for (let x = 0; x < width; x += stride) {
                     const idx = y * width + x;
                     
-                    // 边缘模式过滤
                     if(window.isEdgeMode && cachedData.edges && cachedData.edges[idx] === 0) continue;
 
                     const d = Math.max(Math.abs(x - cx)/border, Math.abs(y - cy)/border);
@@ -751,7 +821,9 @@
                     uUseMap: { value: (mode !== 'none') },
                     uIsRandom: { value: (mode === 'random') },
                     uCharCount: { value: customCharCount },
-                    uFlickerFreq: { value: freq }
+                    uFlickerFreq: { value: freq },
+                    uPointColor: { value: new THREE.Color(ptColorHex) },
+                    uIsEdgeMode: { value: window.isEdgeMode }
                 },
                 vertexShader: document.getElementById('vertexShader').textContent,
                 fragmentShader: document.getElementById('fragmentShader').textContent,
@@ -766,7 +838,6 @@
             const visibleHeightAtInit = 2 * Math.tan(vFov / 2) * 1500;
             const s = (visibleHeightAtInit * 0.75) / Math.max(width, height);
             points.scale.set(s, s, s);
-            // Depth mode scale correction
             if(window.isDepthMode) points.scale.z = zInten / 200;
 
             scene.add(points);
@@ -776,12 +847,11 @@
             requestAnimationFrame(animate);
             const t = clock.getElapsedTime();
             
-            // 镜头平滑过渡动画
             if(window.camTransition && window.camTransition.active) {
                 window.camTransition.progress += 0.02;
                 let p = window.camTransition.progress;
                 if(p >= 1) { p = 1; window.camTransition.active = false; }
-                const ease = 1 - Math.pow(1 - p, 3); // Cubic Out
+                const ease = 1 - Math.pow(1 - p, 3);
                 camera.position.lerpVectors(window.camTransition.startPos, window.camTransition.endPos, ease);
                 controls.target.lerpVectors(window.camTransition.startTgt, window.camTransition.endTgt, ease);
             }
