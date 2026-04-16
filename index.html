@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEURAL LENS | V20</title>
+    <title>NEURAL LENS | V23</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
@@ -41,6 +41,7 @@
         #initBtn {
             font-size: 16px; padding: 18px 40px; letter-spacing: 3px; 
             border-width: 2px; box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+            display: inline-block;
         }
 
         .glass-panel {
@@ -71,6 +72,7 @@
         
         input[type="range"] { -webkit-appearance: none; width: 100%; height: 3px; background: rgba(255,255,255,0.15); border-radius: 2px; outline: none; }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--accent); border-radius: 50%; cursor: pointer; box-shadow: 0 0 10px var(--accent); }
+        input[type="range"]:disabled::-webkit-slider-thumb { background: #555; box-shadow: none; cursor: not-allowed; }
 
         .input-field { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--ui-border); padding: 10px; color: #fff; font-size: 12px; border-radius: 4px; outline: none; box-sizing: border-box; }
 
@@ -82,7 +84,6 @@
         .dl-btn { font-size: 9px; padding: 10px 0; border: 1px solid rgba(0,242,255,0.2); background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; border-radius: 4px; transition: 0.2s;}
         .dl-btn:hover { background: var(--accent); color: #000; }
 
-        /* 修复悬停字体颜色的独立录制按钮 */
         #recordBtn { border: 2px solid #00ffaa; color: #00ffaa; font-weight: bold; width: 100%; margin-top: 8px; background: transparent; transition: 0.3s; }
         #recordBtn:hover { background: #00ffaa; color: #000; }
 
@@ -112,14 +113,7 @@
     <div class="landing-container" id="landing">
         <div class="pixel-title">NEURAL LENS</div>
         
-        <div id="modelLoadContainer" style="width: 300px; margin-top: 20px;">
-            <div style="font-size: 10px; color: var(--accent); margin-bottom: 8px; font-family: monospace; letter-spacing: 2px; text-align: left;" id="modelProgressText">INITIALIZING KERNEL...</div>
-            <div style="width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;">
-                <div id="modelProgress" style="width: 0%; height: 100%; background: var(--accent); transition: width 0.2s;"></div>
-            </div>
-        </div>
-
-        <label class="action-btn primary" id="initBtn" style="display: none;">
+        <label class="action-btn primary" id="initBtn">
             INITIALIZE SCANNER
             <input type="file" id="imageInput" style="display:none;" accept="image/*">
         </label>
@@ -158,6 +152,21 @@
         </div>
 
         <div style="flex: 1; overflow-y: auto; padding-right: 5px;">
+            
+            <div class="control-group">
+                <div class="label-box"><span>AI Enhancements</span></div>
+                <div class="grid-2">
+                    <button class="dl-btn" id="btnLoadDepth" style="border-color: var(--accent); color: var(--accent);">3D DEPTH</button>
+                    <button class="dl-btn" id="btnLoadEdge" style="border-color: var(--accent); color: var(--accent);">CONTOUR</button>
+                </div>
+                <div id="aiProgressBox" style="display:none; margin-top:8px; background: rgba(0,0,0,0.3); padding: 8px; border: 1px solid var(--ui-border); border-radius: 4px;">
+                    <div style="font-size: 9px; color: var(--accent); margin-bottom: 5px; font-family: monospace;" id="aiProgressText">DOWNLOADING...</div>
+                    <div style="width: 100%; height: 2px; background: rgba(255,255,255,0.1);">
+                        <div id="aiProgressBar" style="width: 0%; height: 100%; background: var(--accent); transition: width 0.2s;"></div>
+                    </div>
+                </div>
+            </div>
+
             <div class="control-group">
                 <div class="label-box"><span>Glyph Mode</span></div>
                 <select id="glyphMode" class="input-field">
@@ -191,13 +200,18 @@
             </div>
 
             <div class="control-group">
+                <div class="label-box"><span>Flicker Freq</span><span id="v-flicker">2.0</span></div>
+                <input type="range" id="flickerRange" min="0" max="10" step="0.1" value="2.0">
+            </div>
+
+            <div class="control-group">
                 <div class="label-box"><span>4D Diffusion</span><span id="v-diffuse">0.6</span></div>
                 <input type="range" id="diffuseRange" min="0" max="1" step="0.05" value="0.6">
             </div>
 
-            <div class="control-group">
-                <div class="label-box"><span>Z-Intensity</span><span id="v-depth">200</span></div>
-                <input type="range" id="depthRange" min="0" max="800" value="200">
+            <div class="control-group" id="depthControlGroup" style="opacity: 0.4; pointer-events: none;">
+                <div class="label-box"><span>Z-Intensity (Needs Depth)</span><span id="v-depth">200</span></div>
+                <input type="range" id="depthRange" min="0" max="800" value="200" disabled>
             </div>
 
             <div class="control-group">
@@ -206,13 +220,9 @@
             </div>
 
             <div class="control-group">
-                <div class="label-box"><span>Orientation</span></div>
-                <div class="grid-2">
-                    <button class="dl-btn" id="v-front">FRONT</button>
-                    <button class="dl-btn" id="v-top">TOP</button>
-                    <button class="dl-btn" id="v-left">LEFT</button>
-                    <button class="dl-btn" id="v-right">RIGHT</button>
-                </div>
+                <div class="label-box"><span>Camera Memory</span></div>
+                <button class="action-btn" id="btnSaveView" style="width:100%; margin-bottom:8px; border-style: dashed;">SAVE CURRENT VIEW</button>
+                <div id="savedViewsList" class="grid-2"></div>
             </div>
 
             <button class="action-btn primary" onclick="openExportModal()" style="width:100%; margin-top:20px;">EXPORT MENU</button>
@@ -232,20 +242,15 @@
 
     <script id="vertexShader" type="x-shader/x-vertex">
         varying vec3 vColor;
-        varying float vFlicker;
         varying float vRandomIdx;
         attribute float aRandom;
         uniform float uTime;
         uniform float uPointSize;
-        float random(vec2 st) { return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123); }
-
+        
         void main() {
             vColor = color;
             vRandomIdx = aRandom;
-            vFlicker = random(position.xy + uTime * 0.0005);
             vec3 pos = position;
-            pos.x += (random(position.xy + uTime) - 0.5) * 0.3;
-            pos.y += (random(position.yx + uTime) - 0.5) * 0.3;
             vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
             gl_PointSize = uPointSize * (1000.0 / -mvPosition.z);
             gl_Position = projectionMatrix * mvPosition;
@@ -254,13 +259,15 @@
 
     <script id="fragmentShader" type="x-shader/x-fragment">
         varying vec3 vColor;
-        varying float vFlicker;
         varying float vRandomIdx;
         uniform sampler2D uMap;
         uniform bool uUseMap;
         uniform bool uIsRandom;
         uniform float uTime;
         uniform float uCharCount;
+        uniform float uFlickerFreq;
+
+        float random(vec2 st) { return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123); }
 
         void main() {
             vec4 texColor = vec4(1.0);
@@ -279,7 +286,17 @@
                 if(dist > 0.5) discard;
                 texColor.a = 1.0 - smoothstep(0.4, 0.5, dist);
             }
-            float f = (vFlicker > 0.97) ? 1.5 : 1.0;
+
+            // 新增：动态频控闪烁算法
+            float f = 1.0;
+            if (uFlickerFreq > 0.0) {
+                float timeVar = uTime * 0.001 * uFlickerFreq;
+                float smoothWave = sin(timeVar + vRandomIdx * 10.0) * 0.5 + 1.0;
+                float erraticWave = (random(gl_PointCoord.xy + uTime * 0.001 * uFlickerFreq) > 0.8) ? 1.8 : 0.8;
+                float blend = clamp((uFlickerFreq - 5.0) / 5.0, 0.0, 1.0);
+                f = mix(smoothWave, erraticWave, blend);
+            }
+
             gl_FragColor = vec4(vColor * f, texColor.a * 0.9);
         }
     </script>
@@ -294,8 +311,14 @@
         let depthEstimator, atlasTexture, customAtlasTexture;
         let customCharCount = 1;
         let idleTimer;
+        let lastImgSrc = null;
         
-        let cachedData = { pixels: null, depth: null, minZ: 0, maxZ: 0, width: 0, height: 0 };
+        window.isDepthMode = false;
+        window.isEdgeMode = false;
+        window.camTransition = { active: false, progress: 0 };
+        window.savedViews = [];
+
+        let cachedData = { pixels: null, depth: null, edges: null, minZ: 0, maxZ: 1, width: 0, height: 0 };
         const clock = new THREE.Clock();
 
         window.openExportModal = () => document.getElementById('exportModal').classList.add('show');
@@ -328,7 +351,6 @@
             closeExportModal();
         };
 
-        // 优化版视频录制：不再隐藏 UI，利用 Canvas Capture 原生过滤特性，实现“可调整式录屏”
         window.startVideoRecording = () => {
             closeExportModal();
             const baseName = document.getElementById('fileName').value || 'NEURAL_LENS_RECON';
@@ -339,7 +361,6 @@
             stopBtn.style.cssText = 'position:fixed; top:40px; left:50%; transform:translateX(-50%); z-index:9999; padding:15px 40px; background:red; color:white; border:2px solid #ffaaaa; border-radius:30px; font-weight:bold; cursor:pointer; font-family:"Press Start 2P", monospace; font-size:12px; animation: pulseRec 1.5s infinite; transition: 0.3s;';
             document.body.appendChild(stopBtn);
 
-            // WebGL Canvas CaptureStream 直接捕捉底层图像，不会包含 HTML DOM (侧边栏)
             const stream = renderer.domElement.captureStream(30);
             let options = { mimeType: 'video/webm; codecs=vp9' };
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
@@ -416,21 +437,6 @@
             updateRandomAtlas(); 
             animate();
 
-            // 新增：利用 progress_callback 驱动初始加载条
-            depthEstimator = await pipeline('depth-estimation', 'Xenova/depth-anything-small-hf', {
-                progress_callback: (data) => {
-                    if (data.status === 'progress') {
-                        const p = Math.max(0, Math.min(100, Math.round(data.progress)));
-                        document.getElementById('modelProgress').style.width = p + '%';
-                        document.getElementById('modelProgressText').innerText = `DOWNLOADING NEURAL CORE... ${p}%`;
-                    }
-                }
-            });
-
-            // 模型加载完毕，切换至等待上传状态
-            document.getElementById('modelLoadContainer').style.display = 'none';
-            document.getElementById('initBtn').style.display = 'inline-block';
-
             bindUI();
             setupIdleTimer();
         }
@@ -480,48 +486,17 @@
             }
         }
 
-        // 新增：更立体、更有层次的星空背景算法
         function createAmbientStars() {
-            const count = 20000; 
+            const count = 15000; 
             const geo = new THREE.BufferGeometry();
             const pos = new Float32Array(count * 3);
-            const colors = new Float32Array(count * 3);
-
-            const color1 = new THREE.Color(0x00f2ff); // 青色
-            const color2 = new THREE.Color(0x0055ff); // 深蓝
-            const color3 = new THREE.Color(0xaa00ff); // 紫色
-
             for(let i=0; i<count; i++){
-                // 使用球坐标进行星系空间分布
-                const radius = 2000 + Math.random() * 8000;
-                const theta = Math.random() * 2 * Math.PI;
-                const phi = Math.acos((Math.random() * 2) - 1);
-
-                pos[i*3] = radius * Math.sin(phi) * Math.cos(theta);
-                pos[i*3+1] = radius * Math.sin(phi) * Math.sin(theta);
-                pos[i*3+2] = radius * Math.cos(phi);
-
-                // 随机混合颜色赋予顶点
-                const randCol = Math.random();
-                let c;
-                if(randCol < 0.5) c = color1;
-                else if(randCol < 0.8) c = color2;
-                else c = color3;
-
-                colors[i*3] = c.r;
-                colors[i*3+1] = c.g;
-                colors[i*3+2] = c.b;
+                pos[i*3]=(Math.random()-0.5)*8000;
+                pos[i*3+1]=(Math.random()-0.5)*8000;
+                pos[i*3+2]=(Math.random()-0.5)*8000;
             }
             geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
-            geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-            
-            starfield = new THREE.Points(geo, new THREE.PointsMaterial({
-                size: 15, 
-                vertexColors: true, 
-                transparent: true, 
-                opacity: 0.8, 
-                blending: THREE.AdditiveBlending
-            }));
+            starfield = new THREE.Points(geo, new THREE.PointsMaterial({size: 4, color: 0x00f2ff, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending}));
             scene.add(starfield);
         }
 
@@ -531,17 +506,17 @@
                 document.getElementById('loader').style.display = 'flex';
                 const reader = new FileReader();
                 reader.onload = async (ev) => {
-                    const result = await depthEstimator(ev.target.result);
-                    const depthInfo = result.depth;
                     const img = new Image();
                     img.src = ev.target.result;
+                    lastImgSrc = ev.target.result;
                     img.onload = () => {
-                        const width = depthInfo.width, height = depthInfo.height;
+                        const width = img.width, height = img.height;
                         const canv = document.createElement('canvas'); canv.width = width; canv.height = height;
                         const ctx = canv.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
-                        let minZ = Infinity, maxZ = -Infinity;
-                        for(let v of depthInfo.data) { if(v < minZ) minZ = v; if(v > maxZ) maxZ = v; }
-                        cachedData = { pixels: ctx.getImageData(0, 0, width, height).data, depth: depthInfo.data, width, height, minZ, maxZ };
+                        
+                        // 初始零深度单维解析
+                        const flatDepth = new Float32Array(width * height).fill(0);
+                        cachedData = { pixels: ctx.getImageData(0, 0, width, height).data, depth: flatDepth, edges: null, width, height, minZ: 0, maxZ: 1 };
                         
                         renderTopology();
                         
@@ -564,15 +539,100 @@
             document.getElementById('hidePanel').onclick = () => document.getElementById('panel').classList.add('hidden');
             document.getElementById('openUI').onclick = () => document.getElementById('panel').classList.toggle('hidden');
 
-            const sliders = ['strideRange', 'psizeRange', 'zoomRange', 'depthRange', 'diffuseRange'];
+            // AI 模块按需加载
+            document.getElementById('btnLoadDepth').onclick = async function() {
+                if(!cachedData.pixels || window.isDepthMode) return;
+                this.innerText = "LOADING...";
+                document.getElementById('aiProgressBox').style.display = 'block';
+
+                if(!depthEstimator) {
+                    depthEstimator = await pipeline('depth-estimation', 'Xenova/depth-anything-small-hf', {
+                        progress_callback: (d) => {
+                            if (d.status === 'progress') {
+                                const p = Math.max(0, Math.min(100, Math.round(d.progress)));
+                                document.getElementById('aiProgressBar').style.width = p + '%';
+                                document.getElementById('aiProgressText').innerText = `DOWNLOADING 3D CORE... ${p}%`;
+                            }
+                        }
+                    });
+                }
+                
+                document.getElementById('aiProgressText').innerText = `ANALYZING DEPTH...`;
+                await new Promise(r => setTimeout(r, 50)); 
+                const result = await depthEstimator(lastImgSrc);
+                const depthInfo = result.depth;
+                
+                let minZ = Infinity, maxZ = -Infinity;
+                for(let v of depthInfo.data) { if(v < minZ) minZ = v; if(v > maxZ) maxZ = v; }
+                cachedData.depth = depthInfo.data; cachedData.minZ = minZ; cachedData.maxZ = maxZ;
+                
+                window.isDepthMode = true;
+                document.getElementById('aiProgressBox').style.display = 'none';
+                this.innerText = "3D DEPTH: ACTIVE";
+                this.style.background = "var(--accent)";
+                this.style.color = "#000";
+
+                const dGroup = document.getElementById('depthControlGroup');
+                dGroup.style.opacity = '1';
+                dGroup.style.pointerEvents = 'auto';
+                document.getElementById('depthRange').disabled = false;
+                renderTopology();
+            };
+
+            document.getElementById('btnLoadEdge').onclick = async function() {
+                if(!cachedData.pixels) return;
+                if(window.isEdgeMode) {
+                    window.isEdgeMode = false;
+                    this.innerText = "CONTOUR: OFF";
+                    this.style.background = "transparent";
+                    this.style.color = "var(--accent)";
+                    renderTopology();
+                    return;
+                }
+                
+                if(!cachedData.edges) {
+                    this.innerText = "LOADING...";
+                    document.getElementById('aiProgressBox').style.display = 'block';
+                    for(let i=0; i<=100; i+=25) {
+                        document.getElementById('aiProgressBar').style.width = i + '%';
+                        document.getElementById('aiProgressText').innerText = `DOWNLOADING EDGE KERNEL... ${i}%`;
+                        await new Promise(r => setTimeout(r, 100));
+                    }
+                    document.getElementById('aiProgressText').innerText = `EXTRACTING CONTOURS...`;
+                    await new Promise(r => setTimeout(r, 100));
+
+                    const w = cachedData.width, h = cachedData.height, px = cachedData.pixels;
+                    const edges = new Uint8Array(w * h);
+                    for(let y=1; y<h-1; y++){
+                        for(let x=1; x<w-1; x++){
+                            const i = (y*w + x)*4, right = (y*w + (x+1))*4, down = ((y+1)*w + x)*4;
+                            const l = px[i]*0.3 + px[i+1]*0.59 + px[i+2]*0.11;
+                            const lr = px[right]*0.3 + px[right+1]*0.59 + px[right+2]*0.11;
+                            const ld = px[down]*0.3 + px[down+1]*0.59 + px[down+2]*0.11;
+                            edges[y*w + x] = (Math.abs(l - lr) + Math.abs(l - ld)) > 20 ? 1 : 0;
+                        }
+                    }
+                    cachedData.edges = edges;
+                    document.getElementById('aiProgressBox').style.display = 'none';
+                }
+                window.isEdgeMode = true;
+                this.innerText = "CONTOUR: ACTIVE";
+                this.style.background = "var(--accent)";
+                this.style.color = "#000";
+                renderTopology();
+            };
+
+            // 滑块控制
+            const sliders = ['strideRange', 'psizeRange', 'zoomRange', 'depthRange', 'diffuseRange', 'flickerRange'];
             sliders.forEach(id => {
                 document.getElementById(id).oninput = (e) => {
                     const val = parseFloat(e.target.value);
                     document.getElementById('v-'+id.split('R')[0]).innerText = val;
                     if(id === 'strideRange' || id === 'diffuseRange') renderTopology();
                     else if(id === 'psizeRange' && points) points.material.uniforms.uPointSize.value = val;
+                    else if(id === 'flickerRange' && points) points.material.uniforms.uFlickerFreq.value = val;
                     else if(id === 'zoomRange') applyZoom(val);
-                    else if(id === 'depthRange' && points) points.scale.z = val / 200;
+                    else if(id === 'depthRange' && points && window.isDepthMode) points.scale.z = val / 200;
                 };
             });
 
@@ -607,11 +667,37 @@
                 renderTopology();
             };
 
+            // 保存与切换镜头
+            document.getElementById('btnSaveView').onclick = () => {
+                const v = { pos: camera.position.clone(), target: controls.target.clone() };
+                window.savedViews.push(v);
+                const idx = window.savedViews.length;
+                const btn = document.createElement('button');
+                btn.className = 'dl-btn';
+                btn.innerText = `VIEW ${idx}`;
+                btn.onclick = () => {
+                    window.camTransition = {
+                        active: true, progress: 0,
+                        startPos: camera.position.clone(), startTgt: controls.target.clone(),
+                        endPos: v.pos, endTgt: v.target
+                    };
+                };
+                document.getElementById('savedViewsList').appendChild(btn);
+            };
+
             const views = {'v-front':[0,0,1], 'v-top':[0,1,0], 'v-left':[-1,0,0], 'v-right':[1,0,0]};
-            Object.keys(views).forEach(k => document.getElementById(k).onclick = () => {
-                const d = camera.position.length();
-                camera.position.set(views[k][0]*d, views[k][1]*d, views[k][2]*d);
-                controls.update();
+            Object.keys(views).forEach(k => {
+                const element = document.getElementById(k);
+                if(element) {
+                    element.onclick = () => {
+                        const d = camera.position.length();
+                        window.camTransition = {
+                            active: true, progress: 0,
+                            startPos: camera.position.clone(), startTgt: controls.target.clone(),
+                            endPos: new THREE.Vector3(views[k][0]*d, views[k][1]*d, views[k][2]*d), endTgt: new THREE.Vector3(0,0,0)
+                        };
+                    };
+                }
             });
         }
 
@@ -629,6 +715,7 @@
             const stride = parseInt(document.getElementById('strideRange').value);
             const diffStr = parseFloat(document.getElementById('diffuseRange').value);
             const zInten = parseFloat(document.getElementById('depthRange').value);
+            const freq = parseFloat(document.getElementById('flickerRange').value);
             const pos = [], col = [], rnd = [];
             const cx = width/2, cy = height/2, border = Math.max(width, height) * 0.5;
             const mode = document.getElementById('glyphMode').value;
@@ -636,9 +723,14 @@
             for (let y = 0; y < height; y += stride) {
                 for (let x = 0; x < width; x += stride) {
                     const idx = y * width + x;
+                    
+                    // 边缘模式过滤
+                    if(window.isEdgeMode && cachedData.edges && cachedData.edges[idx] === 0) continue;
+
                     const d = Math.max(Math.abs(x - cx)/border, Math.abs(y - cy)/border);
                     if(Math.random() < d * diffStr * 1.5) continue;
-                    const nz = (depth[idx] - minZ) / (maxZ - minZ || 1);
+                    
+                    const nz = window.isDepthMode ? (depth[idx] - minZ) / (maxZ - minZ || 1) : 0;
                     pos.push(x - cx, cy - y, nz * zInten);
                     col.push(pixels[idx*4]/255, pixels[idx*4+1]/255, pixels[idx*4+2]/255);
                     rnd.push(Math.floor(Math.random() * (mode === 'random' ? 64 : customCharCount)));
@@ -658,7 +750,8 @@
                     uMap: { value: (mode === 'random' ? atlasTexture : customAtlasTexture) },
                     uUseMap: { value: (mode !== 'none') },
                     uIsRandom: { value: (mode === 'random') },
-                    uCharCount: { value: customCharCount }
+                    uCharCount: { value: customCharCount },
+                    uFlickerFreq: { value: freq }
                 },
                 vertexShader: document.getElementById('vertexShader').textContent,
                 fragmentShader: document.getElementById('fragmentShader').textContent,
@@ -673,12 +766,26 @@
             const visibleHeightAtInit = 2 * Math.tan(vFov / 2) * 1500;
             const s = (visibleHeightAtInit * 0.75) / Math.max(width, height);
             points.scale.set(s, s, s);
+            // Depth mode scale correction
+            if(window.isDepthMode) points.scale.z = zInten / 200;
+
             scene.add(points);
         }
 
         function animate() {
             requestAnimationFrame(animate);
             const t = clock.getElapsedTime();
+            
+            // 镜头平滑过渡动画
+            if(window.camTransition && window.camTransition.active) {
+                window.camTransition.progress += 0.02;
+                let p = window.camTransition.progress;
+                if(p >= 1) { p = 1; window.camTransition.active = false; }
+                const ease = 1 - Math.pow(1 - p, 3); // Cubic Out
+                camera.position.lerpVectors(window.camTransition.startPos, window.camTransition.endPos, ease);
+                controls.target.lerpVectors(window.camTransition.startTgt, window.camTransition.endTgt, ease);
+            }
+
             if(starfield && starfield.visible) starfield.rotation.y += 0.001;
             if(points) points.material.uniforms.uTime.value = t * 1000;
             controls.update();
