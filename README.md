@@ -1,4 +1,4 @@
-# Neural Lens Recon
+# NEURAL LENS
 
 一个基于 AI 深度估计和 Three.js 的 3D 点云渲染项目，将普通图片转换为具有科技感的 3D 字符云效果。
 
@@ -20,8 +20,8 @@
 
 1. **克隆项目**
    ```bash
-   git clone https://github.com/42-Han/dianyu.git
-   cd dianyu
+   git clone https://github.com/42-Han/NEURAL_LENS.git
+   cd NEURAL_LENS
    ```
 
 2. **启动本地服务器**
@@ -39,7 +39,7 @@
 ### 方法二：在线访问
 
 - **main 分支**（原始版本）：
-  - 访问 [GitHub Pages](https://42-Han.github.io/dianyu)
+  - 访问 [GitHub Pages](https://42-Han.github.io/NEURAL_LENS)
 
 ## 📖 使用说明
 
@@ -95,8 +95,9 @@
 ## 📁 项目结构
 
 ```
-dianyu/
+NEURAL_LENS/
 ├── index.html          # 主页面（包含所有代码）
+├── privacy.html        # 隐私政策页面
 └── README.md           # 项目说明
 ```
 
@@ -131,4 +132,4 @@ MIT License
 
 ---
 
-**Neural Lens Recon** - 用 AI 技术重新定义图像的视觉表现 🎭
+**NEURAL LENS** - 用 AI 技术重新定义图像的视觉表现 🎭
