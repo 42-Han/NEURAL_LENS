@@ -606,6 +606,35 @@
                         const flatDepth = new Float32Array(width * height).fill(0);
                         cachedData = { pixels: ctx.getImageData(0, 0, width, height).data, depth: flatDepth, edges: null, width, height, minZ: 0, maxZ: 1 };
                         
+                        window.isDepthMode = false;
+                        window.isEdgeMode = false;
+                        window.savedViews = {};
+                        document.getElementById('savedViewsList').innerHTML = '';
+                        window.setBgColor('#000000');
+                        window.setPtColor('#00f2ff');
+                        
+                        document.getElementById('strideRange').value = 4;
+                        document.getElementById('v-stride').innerText = 4;
+                        document.getElementById('psizeRange').value = 3.0;
+                        document.getElementById('v-psize').innerText = 3.0;
+                        document.getElementById('depthRange').value = 200;
+                        document.getElementById('v-depth').innerText = 200;
+                        document.getElementById('diffuseRange').value = 0.6;
+                        document.getElementById('v-diffuse').innerText = 0.6;
+                        document.getElementById('flickerRange').value = 2.0;
+                        document.getElementById('v-flicker').innerText = 2.0;
+                        document.getElementById('glyphMode').value = 'none';
+                        document.getElementById('ptColorPicker').value = '#00f2ff';
+                        
+                        document.getElementById('cbDepth').checked = false;
+                        document.getElementById('depthSettings').style.display = 'none';
+                        document.getElementById('cbEdge').checked = false;
+                        document.getElementById('edgeSettings').style.display = 'none';
+                        
+                        camera.position.set(0, 0, 1000);
+                        controls.target.set(0, 0, 0);
+                        controls.update();
+                        
                         renderTopology();
                         
                         document.getElementById('zoomRange').value = 20;
