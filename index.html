@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEURAL LENS | V24</title>
+    <title>NEURAL LENS | PRO</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
@@ -50,10 +50,11 @@
             background: var(--ui-bg); backdrop-filter: blur(30px);
             border: 1px solid var(--ui-border); z-index: 20;
             transition: var(--transition);
-            padding: 30px 25px; box-sizing: border-box; 
+            padding: 30px 20px; box-sizing: border-box; 
             display: flex; flex-direction: column; border-radius: 15px;
             box-shadow: 0 25px 50px rgba(0,0,0,0.9);
             transform: translateX(-450px); opacity: 0;
+            overflow-x: hidden; /* 防止横向滑动 */
         }
         .glass-panel.show { transform: translateX(0); opacity: 1; }
         .glass-panel.hidden { transform: translateX(-450px); opacity: 0; }
@@ -66,7 +67,7 @@
         }
         .trigger-line { width: 3px; height: 40px; background: var(--accent); box-shadow: 0 0 15px var(--accent); border-radius: 2px; }
 
-        .control-group { margin-bottom: 20px; width: 100%; }
+        .control-group { margin-bottom: 20px; width: 100%; box-sizing: border-box; }
         .label-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .label-box span:first-child { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.5; }
         .label-box span:last-child { font-family: monospace; font-size: 12px; color: var(--accent); }
@@ -78,7 +79,7 @@
         .input-field { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--ui-border); padding: 10px; color: #fff; font-size: 12px; border-radius: 4px; outline: none; box-sizing: border-box; }
 
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .action-btn { background: transparent; border: 1px solid var(--ui-border); color: #fff; padding: 10px; font-size: 10px; cursor: pointer; border-radius: 4px; transition: 0.2s; text-transform: uppercase; text-align: center; }
+        .action-btn { background: transparent; border: 1px solid var(--ui-border); color: #fff; padding: 10px; font-size: 10px; cursor: pointer; border-radius: 4px; transition: 0.2s; text-transform: uppercase; text-align: center; box-sizing: border-box; }
         .action-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
         .action-btn.primary { border-color: var(--accent); color: var(--accent); font-weight: bold; }
         #initBtn:hover, #panel .action-btn.primary:hover { background: var(--accent); color: #000; border-color: var(--accent); }
@@ -105,13 +106,12 @@
 
         @keyframes pulseRec { 0% { box-shadow: 0 0 10px red; } 50% { box-shadow: 0 0 35px red; } 100% { box-shadow: 0 0 10px red; } }
 
-        /* 颜色预设方块 */
-        .color-swatch { width: 22px; height: 22px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; transition: 0.2s; }
+        .color-swatch { width: 22px; height: 22px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; transition: 0.2s; flex-shrink: 0; }
         .color-swatch:hover { border-color: var(--accent); transform: scale(1.1); }
         
         .ai-check-label { display:flex; align-items:center; font-size:11px; cursor:pointer; color:var(--accent); font-weight: bold; letter-spacing: 1px; margin-bottom: 8px; }
         .ai-check-label input { margin-right:10px; accent-color: var(--accent); cursor: pointer; width: 14px; height: 14px; }
-        .sub-setting { margin-top:10px; padding-left:24px; border-left:1px solid rgba(0,242,255,0.2); display: none; }
+        .sub-setting { margin-top:10px; padding-left:24px; border-left:1px solid rgba(0,242,255,0.2); display: none; box-sizing: border-box; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
 </head>
@@ -141,9 +141,9 @@
             <input type="text" id="fileName" class="input-field" placeholder="Filename..." value="NEURAL_LENS_RECON">
             
             <div class="dl-grid">
-                <button class="dl-btn" onclick="exportFile('png')">PNG</button>
-                <button class="dl-btn" onclick="exportFile('jpeg')">JPG</button>
-                <button class="dl-btn" onclick="exportFile('svg')">SVG</button>
+                <button class="dl-btn" onclick="exportFile('png')" title="Transparent Background">PNG</button>
+                <button class="dl-btn" onclick="exportFile('jpeg')" title="Solid Background">JPG</button>
+                <button class="dl-btn" onclick="exportFile('svg')" title="Transparent Background">SVG</button>
                 <button class="dl-btn" onclick="exportFile('gif')" style="border-color: #ff0055; color: #ff0055; font-weight: bold;">GIF (3s)</button>
             </div>
             
@@ -164,8 +164,8 @@
             
             <div class="control-group">
                 <div class="label-box"><span>Environment Base</span></div>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <input type="color" id="bgColorPicker" value="#000000" style="width:24px; height:24px; border:none; background:transparent; cursor:pointer; padding:0;">
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <input type="color" id="bgColorPicker" value="#000000" style="width:24px; height:24px; border:none; background:transparent; cursor:pointer; padding:0; flex-shrink:0;">
                     <div class="color-swatch" style="background:#000000;" onclick="setBgColor('#000000')"></div>
                     <div class="color-swatch" style="background:#0a141e;" onclick="setBgColor('#0a141e')"></div>
                     <div class="color-swatch" style="background:#1c0d16;" onclick="setBgColor('#1c0d16')"></div>
@@ -191,8 +191,8 @@
                     </label>
                     <div class="sub-setting" id="edgeSettings">
                         <div class="label-box" style="margin-top:5px;"><span>Point / Glyph Color</span></div>
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <input type="color" id="ptColorPicker" value="#00f2ff" style="width:24px; height:24px; border:none; background:transparent; cursor:pointer; padding:0;">
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <input type="color" id="ptColorPicker" value="#00f2ff" style="width:24px; height:24px; border:none; background:transparent; cursor:pointer; padding:0; flex-shrink:0;">
                             <div class="color-swatch" style="background:#00f2ff;" onclick="setPtColor('#00f2ff')"></div>
                             <div class="color-swatch" style="background:#00ffaa;" onclick="setPtColor('#00ffaa')"></div>
                             <div class="color-swatch" style="background:#ff0055;" onclick="setPtColor('#ff0055')"></div>
@@ -218,7 +218,7 @@
                 </select>
                 <input type="text" id="glyphInput" class="input-field" style="margin-top:8px; display:none;" placeholder="Enter up to 10 chars" maxlength="10">
                 
-                <div id="randomCategories" style="display:none; margin-top:8px; background: rgba(0,0,0,0.3); border: 1px solid var(--ui-border); border-radius: 4px; padding: 12px;">
+                <div id="randomCategories" style="display:none; margin-top:8px; background: rgba(0,0,0,0.3); border: 1px solid var(--ui-border); border-radius: 4px; padding: 12px; box-sizing: border-box;">
                     <label style="display:flex; align-items:center; font-size:10px; color:#fff; margin-bottom:8px; cursor:pointer;">
                         <input type="checkbox" id="catNumbers" checked style="margin-right:8px; accent-color: var(--accent);"> Numbers (0-9)
                     </label>
@@ -291,14 +291,11 @@
         varying vec3 vColor;
         varying float vRandomIdx;
         attribute float aRandom;
-        uniform float uTime;
         uniform float uPointSize;
-        
         void main() {
             vColor = color;
             vRandomIdx = aRandom;
-            vec3 pos = position;
-            vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
             gl_PointSize = uPointSize * (1000.0 / -mvPosition.z);
             gl_Position = projectionMatrix * mvPosition;
         }
@@ -314,7 +311,6 @@
         uniform float uCharCount;
         uniform float uFlickerFreq;
         
-        // 颜色覆写 Uniforms
         uniform vec3 uPointColor;
         uniform bool uIsEdgeMode;
 
@@ -323,19 +319,16 @@
         void main() {
             vec4 texColor = vec4(1.0);
             if(uUseMap) {
-                vec2 uv = gl_PointCoord;
                 float grid = 8.0; 
                 float limit = uIsRandom ? 64.0 : uCharCount;
                 float idx = mod(floor(vRandomIdx + (uIsRandom ? uTime * 0.002 : 0.0)), limit);
                 float tx = mod(idx, grid) / grid;
                 float ty = floor(idx / grid) / grid;
-                uv = (gl_PointCoord / grid) + vec2(tx, ty);
+                vec2 uv = (gl_PointCoord / grid) + vec2(tx, ty);
                 texColor = texture2D(uMap, uv);
                 if(texColor.a < 0.1) discard;
             } else {
-                float dist = distance(gl_PointCoord, vec2(0.5));
-                if(dist > 0.5) discard;
-                texColor.a = 1.0 - smoothstep(0.4, 0.5, dist);
+                if(distance(gl_PointCoord, vec2(0.5)) > 0.5) discard;
             }
 
             float f = 1.0;
@@ -347,7 +340,6 @@
                 f = mix(smoothWave, erraticWave, blend);
             }
 
-            // 轮廓模式专属颜色覆写
             vec3 finalColor = vColor;
             if (uIsEdgeMode) {
                 finalColor = uPointColor; 
@@ -377,13 +369,14 @@
         let cachedData = { pixels: null, depth: null, edges: null, minZ: 0, maxZ: 1, width: 0, height: 0 };
         const clock = new THREE.Clock();
 
-        // 供 HTML onclick 调用的全局函数
         window.openExportModal = () => document.getElementById('exportModal').classList.add('show');
         window.closeExportModal = () => document.getElementById('exportModal').classList.remove('show');
 
+        // 同步修改 Scene 背景，确保存档及导出正常
         window.setBgColor = (hex) => {
             document.getElementById('bgColorPicker').value = hex;
             document.body.style.background = hex;
+            if (scene) scene.background = new THREE.Color(hex);
         };
         window.setPtColor = (hex) => {
             document.getElementById('ptColorPicker').value = hex;
@@ -399,26 +392,44 @@
             const baseName = document.getElementById('fileName').value || 'NEURAL_LENS_RECON';
             if(format === 'gif') { recordGIF(baseName); return; }
             
+            // 为 PNG 和 SVG 强制透明底
+            const originalBg = scene.background;
+            if(format === 'png' || format === 'svg') {
+                scene.background = null;
+            }
+            
             renderer.render(scene, camera);
+            
             if(format === 'svg') {
                 const dataUrl = renderer.domElement.toDataURL('image/png', 1.0);
-                const w = renderer.domElement.width; const h = renderer.domElement.height;
+                const w = renderer.domElement.width;
+                const h = renderer.domElement.height;
                 const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><image href="${dataUrl}" width="${w}" height="${h}"/></svg>`;
                 const blob = new Blob([svgStr], {type: 'image/svg+xml'});
-                const link = document.createElement('a'); link.download = `${baseName}.svg`; link.href = URL.createObjectURL(blob);
-                link.click(); closeExportModal(); return;
+                const link = document.createElement('a');
+                link.download = `${baseName}.svg`;
+                link.href = URL.createObjectURL(blob);
+                link.click();
+                closeExportModal();
+                scene.background = originalBg; // 恢复背景
+                return;
             }
 
-            const link = document.createElement('a'); link.download = `${baseName}.${format}`;
+            const link = document.createElement('a');
+            link.download = `${baseName}.${format}`;
             link.href = renderer.domElement.toDataURL(`image/${format === 'png' ? 'png' : 'jpeg'}`, 0.9);
-            link.click(); closeExportModal();
+            link.click();
+            closeExportModal();
+            scene.background = originalBg; // 恢复背景
         };
 
         window.startVideoRecording = () => {
             closeExportModal();
             const baseName = document.getElementById('fileName').value || 'NEURAL_LENS_RECON';
             
-            const stopBtn = document.createElement('button'); stopBtn.id = 'stopRecBtn'; stopBtn.innerText = 'STOP RECORDING';
+            const stopBtn = document.createElement('button');
+            stopBtn.id = 'stopRecBtn';
+            stopBtn.innerText = 'STOP RECORDING';
             stopBtn.style.cssText = 'position:fixed; top:40px; left:50%; transform:translateX(-50%); z-index:9999; padding:15px 40px; background:red; color:white; border:2px solid #ffaaaa; border-radius:30px; font-weight:bold; cursor:pointer; font-family:"Press Start 2P", monospace; font-size:12px; animation: pulseRec 1.5s infinite; transition: 0.3s;';
             document.body.appendChild(stopBtn);
 
@@ -430,15 +441,19 @@
             }
             const mediaRecorder = new MediaRecorder(stream, options);
             const recordedChunks = [];
+
             mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+
             mediaRecorder.onstop = () => {
                 const blob = new Blob(recordedChunks, { type: 'video/webm' });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.style.display = 'none'; a.href = url; a.download = `${baseName}.webm`;
+                const a = document.createElement('a');
+                a.style.display = 'none'; a.href = url; a.download = `${baseName}.webm`;
                 document.body.appendChild(a); a.click();
                 setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(url); }, 100);
                 stopBtn.remove();
             };
+
             mediaRecorder.start();
             stopBtn.onclick = () => mediaRecorder.stop();
         };
@@ -446,7 +461,8 @@
         async function recordGIF(name) {
             document.getElementById('exportModal').classList.remove('show');
             document.getElementById('loader').style.display = 'flex';
-            const loaderTxt = document.getElementById('loaderText'); loaderTxt.innerText = 'INITIALIZING_GIF_ENGINE...';
+            const loaderTxt = document.getElementById('loaderText');
+            loaderTxt.innerText = 'INITIALIZING_GIF_ENGINE...';
             let workerUrl;
             try {
                 const workerBlob = await fetch('https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js').then(r => r.blob());
@@ -458,11 +474,16 @@
             const capture = setInterval(() => {
                 renderer.render(scene, camera);
                 gif.addFrame(renderer.domElement, {copy: true, delay: 100});
-                count++; loaderTxt.innerText = `RECORDING: ${Math.round((count/maxFrames)*100)}%`;
+                count++;
+                loaderTxt.innerText = `RECORDING: ${Math.round((count/maxFrames)*100)}%`;
                 if(count >= maxFrames) {
-                    clearInterval(capture); loaderTxt.innerText = 'ENCODING_GIF...';
+                    clearInterval(capture);
+                    loaderTxt.innerText = 'ENCODING_GIF...';
                     gif.on('finished', (blob) => {
-                        const link = document.createElement('a'); link.download = `${name}.gif`; link.href = URL.createObjectURL(blob); link.click();
+                        const link = document.createElement('a');
+                        link.download = `${name}.gif`;
+                        link.href = URL.createObjectURL(blob);
+                        link.click();
                         document.getElementById('loader').style.display = 'none';
                     });
                     gif.render();
@@ -472,6 +493,7 @@
 
         async function init() {
             scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000000);
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
             camera.position.set(0, 0, 1000); 
 
@@ -499,27 +521,37 @@
                     idleTimer = setTimeout(() => panel.classList.add('hidden'), 4000);
                 }
             };
-            panel.addEventListener('mousemove', reset); panel.addEventListener('mousedown', reset); panel.addEventListener('input', reset);
+            panel.addEventListener('mousemove', reset);
+            panel.addEventListener('mousedown', reset);
+            panel.addEventListener('input', reset);
         }
 
         function updateRandomAtlas() {
             const useNum = document.getElementById('catNumbers') ? document.getElementById('catNumbers').checked : true;
             const useLet = document.getElementById('catLetters') ? document.getElementById('catLetters').checked : true;
             const useSym = document.getElementById('catSymbols') ? document.getElementById('catSymbols').checked : true;
+
             let chars = "";
-            if(useNum) chars += "0123456789"; if(useLet) chars += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; if(useSym) chars += "<>[]{}#@$*&!?%:=+-_^/()*";
+            if(useNum) chars += "0123456789";
+            if(useLet) chars += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            if(useSym) chars += "<>[]{}#@$*&!?%:=+-_^/()*";
             if(chars === "") chars = "0101"; 
 
-            const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 512;
-            const ctx = canvas.getContext('2d'); ctx.fillStyle = 'white'; ctx.font = 'bold 50px monospace';
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'white'; ctx.font = 'bold 50px monospace';
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             
             for(let i=0; i<64; i++) {
-                const x = (i % 8) * 64 + 32; const y = Math.floor(i / 8) * 64 + 32;
+                const x = (i % 8) * 64 + 32;
+                const y = Math.floor(i / 8) * 64 + 32;
                 ctx.fillText(chars[i % chars.length], x, y);
             }
+            
             if (atlasTexture) atlasTexture.dispose();
-            atlasTexture = new THREE.CanvasTexture(canvas); atlasTexture.flipY = false;
+            atlasTexture = new THREE.CanvasTexture(canvas);
+            atlasTexture.flipY = false;
             
             if(points && document.getElementById('glyphMode').value === 'random') {
                 points.material.uniforms.uMap.value = atlasTexture;
@@ -534,16 +566,21 @@
             const ctx = canv.getContext('2d'); ctx.fillStyle = 'white'; ctx.font = 'bold 64px monospace';
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             chars.forEach((c, i) => {
-                const x = (i % 8) * 64 + 32; const y = Math.floor(i / 8) * 64 + 32; ctx.fillText(c, x, y);
+                const x = (i % 8) * 64 + 32; const y = Math.floor(i / 8) * 64 + 32;
+                ctx.fillText(c, x, y);
             });
             if(customAtlasTexture) customAtlasTexture.dispose();
             customAtlasTexture = new THREE.CanvasTexture(canv); customAtlasTexture.flipY = false;
         }
 
         function createAmbientStars() {
-            const count = 15000; const geo = new THREE.BufferGeometry(); const pos = new Float32Array(count * 3);
+            const count = 15000; 
+            const geo = new THREE.BufferGeometry();
+            const pos = new Float32Array(count * 3);
             for(let i=0; i<count; i++){
-                pos[i*3]=(Math.random()-0.5)*8000; pos[i*3+1]=(Math.random()-0.5)*8000; pos[i*3+2]=(Math.random()-0.5)*8000;
+                pos[i*3]=(Math.random()-0.5)*8000;
+                pos[i*3+1]=(Math.random()-0.5)*8000;
+                pos[i*3+2]=(Math.random()-0.5)*8000;
             }
             geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
             starfield = new THREE.Points(geo, new THREE.PointsMaterial({size: 4, color: 0x00f2ff, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending}));
@@ -566,7 +603,6 @@
                         const canv = document.createElement('canvas'); canv.width = width; canv.height = height;
                         const ctx = canv.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
                         
-                        // 无模型秒出：零深度全景解析
                         const flatDepth = new Float32Array(width * height).fill(0);
                         cachedData = { pixels: ctx.getImageData(0, 0, width, height).data, depth: flatDepth, edges: null, width, height, minZ: 0, maxZ: 1 };
                         
@@ -687,7 +723,10 @@
             };
 
             ['catNumbers', 'catLetters', 'catSymbols'].forEach(id => {
-                document.getElementById(id).onchange = () => { updateRandomAtlas(); renderTopology(); };
+                document.getElementById(id).onchange = () => {
+                    updateRandomAtlas();
+                    renderTopology();
+                };
             });
 
             document.getElementById('glyphInput').oninput = (e) => {
@@ -695,9 +734,13 @@
                 renderTopology();
             };
 
-            // 高级参数级摄像机记忆
+            // 镜头重命名功能
             document.getElementById('btnSaveView').onclick = () => {
                 const id = Date.now();
+                const defaultName = `VIEW ${Object.keys(window.savedViews).length + 1}`;
+                const viewName = prompt("Name this view:", defaultName);
+                if (viewName === null) return; // Cancelled
+                
                 const v = {
                     pos: camera.position.clone(), target: controls.target.clone(),
                     psize: document.getElementById('psizeRange').value,
@@ -718,11 +761,13 @@
                 window.savedViews[id] = v;
 
                 const cont = document.createElement('div'); cont.style.cssText = 'display:flex; gap:4px;';
-                const btn = document.createElement('button'); btn.className = 'dl-btn'; btn.style.flex = '1';
-                btn.innerText = `VIEW MEMORY ${Object.keys(window.savedViews).length}`;
+                const btn = document.createElement('button'); 
+                btn.className = 'dl-btn'; 
+                btn.style.flex = '1';
+                btn.innerText = viewName || defaultName;
+                btn.title = "Double-click to rename";
                 
                 btn.onclick = () => {
-                    // UI & Global Status Restore
                     ['psize','stride','diffuse','depth','zoom','flicker'].forEach(key => {
                         document.getElementById(`${key}Range`).value = v[key];
                         document.getElementById(`v-${key}`).innerText = v[key];
@@ -746,11 +791,13 @@
                     if(v.mode === 'random') updateRandomAtlas();
                     if(v.mode === 'custom') updateCustomAtlas(v.customChars);
 
-                    // Rebuild geo immediately
                     renderTopology();
-                    
-                    // Smooth Cam Transition
                     window.camTransition = { active: true, progress: 0, startPos: camera.position.clone(), startTgt: controls.target.clone(), endPos: v.pos, endTgt: v.target };
+                };
+
+                btn.ondblclick = () => {
+                    const newName = prompt("Rename view:", btn.innerText);
+                    if (newName) btn.innerText = newName;
                 };
 
                 const del = document.createElement('button'); del.className = 'dl-btn'; del.style.cssText = 'width:30px; border-color:#ff0055; color:#ff0055;';
@@ -781,7 +828,7 @@
 
         function renderTopology() {
             if(!cachedData.pixels) return;
-            const { pixels, depth, width, height, minZ, maxZ } = cachedData;
+            const { pixels, depth, edges, width, height, minZ, maxZ } = cachedData;
             const stride = parseInt(document.getElementById('strideRange').value);
             const diffStr = parseFloat(document.getElementById('diffuseRange').value);
             const zInten = parseFloat(document.getElementById('depthRange').value);
@@ -795,7 +842,7 @@
                 for (let x = 0; x < width; x += stride) {
                     const idx = y * width + x;
                     
-                    if(window.isEdgeMode && cachedData.edges && cachedData.edges[idx] === 0) continue;
+                    if(window.isEdgeMode && edges && edges[idx] === 0) continue;
 
                     const d = Math.max(Math.abs(x - cx)/border, Math.abs(y - cy)/border);
                     if(Math.random() < d * diffStr * 1.5) continue;
