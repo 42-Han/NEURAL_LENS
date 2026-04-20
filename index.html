@@ -218,7 +218,7 @@
         <div class="pixel-title">NEURAL LENS</div>
         
         <label class="action-btn primary" id="initBtn">
-            INITIALIZE SCANNER
+            <span data-i18n="initBtn">INITIALIZE SCANNER</span>
             <input type="file" id="imageInput" style="display:none;" accept="image/*">
         </label>
     </div>
@@ -233,43 +233,43 @@
     <div class="modal-overlay" id="nameModal">
         <div class="modal-box" style="width:300px;">
             <div class="modal-title" id="nameModalTitle">SAVE VIEW</div>
-            <input type="text" id="nameModalInput" class="input-field" placeholder="View name..." style="margin-bottom:16px;">
+            <input type="text" id="nameModalInput" class="input-field" data-i18n-ph="viewNamePh" placeholder="View name..." style="margin-bottom:16px;">
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                <button class="action-btn" id="nameModalCancel" style="border:none; opacity:0.5;">CANCEL</button>
-                <button class="action-btn primary" id="nameModalConfirm">CONFIRM</button>
+                <button class="action-btn" id="nameModalCancel" data-i18n="cancel" style="border:none; opacity:0.5;">CANCEL</button>
+                <button class="action-btn primary" id="nameModalConfirm" data-i18n="confirm">CONFIRM</button>
             </div>
         </div>
     </div>
 
     <div class="modal-overlay" id="exportModal">
         <div class="modal-box">
-            <div class="modal-title">EXPORT BUFFER</div>
-            <input type="text" id="fileName" class="input-field" placeholder="Filename..." value="NEURAL_LENS_RECON">
-            
+            <div class="modal-title" data-i18n="exportBuf">EXPORT BUFFER</div>
+            <input type="text" id="fileName" class="input-field" data-i18n-ph="filenamePh" placeholder="Filename..." value="NEURAL_LENS_RECON">
+
             <div class="dl-grid">
-                <button class="dl-btn" onclick="exportFile('png')" title="Transparent Background">PNG</button>
-                <button class="dl-btn" onclick="exportFile('jpeg')" title="Solid Background">JPG</button>
-                <button class="dl-btn" onclick="exportFile('svg')" title="Transparent Background">SVG</button>
+                <button class="dl-btn" onclick="exportFile('png')" data-i18n-title="pngTitle" title="Transparent Background">PNG</button>
+                <button class="dl-btn" onclick="exportFile('jpeg')" data-i18n-title="jpgTitle" title="Solid Background">JPG</button>
+                <button class="dl-btn" onclick="exportFile('svg')" data-i18n-title="svgTitle" title="Transparent Background">SVG</button>
                 <button class="dl-btn" onclick="exportFile('gif')" style="border-color: #ff0055; color: #ff0055; font-weight: bold;">GIF (3s)</button>
             </div>
-            
-            <button class="action-btn" id="recordBtn" onclick="startVideoRecording()">RECORD VIDEO</button>
-            <button class="action-btn" onclick="closeExportModal()" style="margin-top:25px; width:100%; border: none; opacity: 0.6;">CANCEL</button>
+
+            <button class="action-btn" id="recordBtn" data-i18n="recordVideo" onclick="startVideoRecording()">RECORD VIDEO</button>
+            <button class="action-btn" data-i18n="cancel" onclick="closeExportModal()" style="margin-top:25px; width:100%; border: none; opacity: 0.6;">CANCEL</button>
         </div>
     </div>
 
     <div class="glass-panel" id="panel">
         <div style="margin-bottom: 20px;">
             <label class="action-btn" style="display:block; font-size: 9px; border-style: dashed;">
-                RE-UPLOAD SOURCE
+                <span data-i18n="reupload">RE-UPLOAD SOURCE</span>
                 <input type="file" id="reInput" style="display:none;" accept="image/*">
             </label>
         </div>
 
         <div style="flex: 1; overflow-y: auto; padding-right: 5px;">
-            
+
             <div class="control-group">
-                <div class="label-box"><span>Environment Base</span></div>
+                <div class="label-box"><span data-i18n="envBase">Environment Base</span></div>
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                     <input type="color" id="bgColorPicker" value="#000000" style="width:24px; height:24px; border:none; background:transparent; cursor:pointer; padding:0; flex-shrink:0;">
                     <div class="color-swatch" style="background:#000000;" onclick="setBgColor('#000000')"></div>
@@ -280,23 +280,23 @@
             </div>
 
             <div class="control-group" style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
-                
+
                 <div style="margin-bottom: 12px;">
                     <label class="ai-check-label">
-                        <input type="checkbox" id="cbDepth"> ENABLE 3D DEPTH
+                        <input type="checkbox" id="cbDepth"> <span data-i18n="enable3d">ENABLE 3D DEPTH</span>
                     </label>
                     <div class="sub-setting" id="depthSettings">
-                        <div class="label-box" style="margin-top:5px;"><span>Z-Intensity</span><span id="v-depth">200</span></div>
+                        <div class="label-box" style="margin-top:5px;"><span data-i18n="zIntensity">Z-Intensity</span><span id="v-depth">200</span></div>
                         <input type="range" id="depthRange" min="0" max="800" value="200">
                     </div>
                 </div>
 
                 <div>
                     <label class="ai-check-label">
-                        <input type="checkbox" id="cbEdge"> ENABLE CONTOUR
+                        <input type="checkbox" id="cbEdge"> <span data-i18n="enableContour">ENABLE CONTOUR</span>
                     </label>
                     <div class="sub-setting" id="edgeSettings">
-                        <div class="label-box" style="margin-top:5px;"><span>Point / Glyph Color</span></div>
+                        <div class="label-box" style="margin-top:5px;"><span data-i18n="ptGlyphColor">Point / Glyph Color</span></div>
                         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                             <input type="color" id="ptColorPicker" value="#00f2ff" style="width:24px; height:24px; border:none; background:transparent; cursor:pointer; padding:0; flex-shrink:0;">
                             <div class="color-swatch" style="background:#00f2ff;" onclick="setPtColor('#00f2ff')"></div>
@@ -316,70 +316,70 @@
             </div>
 
             <div class="control-group">
-                <div class="label-box"><span>Glyph Mode</span></div>
+                <div class="label-box"><span data-i18n="glyphMode">Glyph Mode</span></div>
                 <select id="glyphMode" class="input-field">
-                    <option value="none">Point Cloud</option>
-                    <option value="custom">Custom Glyph (1-10 Chars)</option>
-                    <option value="random">Glitch Matrix</option>
+                    <option value="none" data-i18n-opt="glyphOpt0">Point Cloud</option>
+                    <option value="custom" data-i18n-opt="glyphOpt1">Custom Glyph (1-10 Chars)</option>
+                    <option value="random" data-i18n-opt="glyphOpt2">Glitch Matrix</option>
                 </select>
-                <input type="text" id="glyphInput" class="input-field" style="margin-top:8px; display:none;" placeholder="Enter up to 10 chars" maxlength="10">
-                
+                <input type="text" id="glyphInput" class="input-field" data-i18n-ph="glyphPh" style="margin-top:8px; display:none;" placeholder="Enter up to 10 chars" maxlength="10">
+
                 <div id="randomCategories" style="display:none; margin-top:8px; background: rgba(0,0,0,0.3); border: 1px solid var(--ui-border); border-radius: 4px; padding: 12px; box-sizing: border-box;">
                     <label style="display:flex; align-items:center; font-size:10px; color:#fff; margin-bottom:8px; cursor:pointer;">
-                        <input type="checkbox" id="catNumbers" checked style="margin-right:8px; accent-color: var(--accent);"> Numbers (0-9)
+                        <input type="checkbox" id="catNumbers" checked style="margin-right:8px; accent-color: var(--accent);"> <span data-i18n="catNumbers">Numbers (0-9)</span>
                     </label>
                     <label style="display:flex; align-items:center; font-size:10px; color:#fff; margin-bottom:8px; cursor:pointer;">
-                        <input type="checkbox" id="catLetters" checked style="margin-right:8px; accent-color: var(--accent);"> Letters (A-Z)
+                        <input type="checkbox" id="catLetters" checked style="margin-right:8px; accent-color: var(--accent);"> <span data-i18n="catLetters">Letters (A-Z)</span>
                     </label>
                     <label style="display:flex; align-items:center; font-size:10px; color:#fff; cursor:pointer;">
-                        <input type="checkbox" id="catSymbols" checked style="margin-right:8px; accent-color: var(--accent);"> Symbols (!?@...)
+                        <input type="checkbox" id="catSymbols" checked style="margin-right:8px; accent-color: var(--accent);"> <span data-i18n="catSymbols">Symbols (!?@...)</span>
                     </label>
                 </div>
             </div>
 
             <div class="control-group">
-                <div class="label-box"><span>Point Size</span><span id="v-psize">3.0</span></div>
+                <div class="label-box"><span data-i18n="pointSize">Point Size</span><span id="v-psize">3.0</span></div>
                 <input type="range" id="psizeRange" min="0.5" max="150" step="0.5" value="3.0">
             </div>
 
             <div class="control-group">
-                <div class="label-box"><span>Sampling Stride</span><span id="v-stride">4</span></div>
+                <div class="label-box"><span data-i18n="samplingStride">Sampling Stride</span><span id="v-stride">4</span></div>
                 <input type="range" id="strideRange" min="2" max="50" value="4">
             </div>
 
             <div class="control-group">
-                <div class="label-box"><span>Flicker Freq</span><span id="v-flicker">2.0</span></div>
+                <div class="label-box"><span data-i18n="flickerFreq">Flicker Freq</span><span id="v-flicker">2.0</span></div>
                 <input type="range" id="flickerRange" min="0" max="10" step="0.1" value="2.0">
             </div>
 
             <div class="control-group">
-                <div class="label-box"><span>4D Diffusion</span><span id="v-diffuse">0.6</span></div>
+                <div class="label-box"><span data-i18n="diffusion">4D Diffusion</span><span id="v-diffuse">0.6</span></div>
                 <input type="range" id="diffuseRange" min="0" max="1" step="0.05" value="0.6">
             </div>
 
             <div class="control-group">
-                <div class="label-box"><span>Zoom / Magnify</span><span id="v-zoom">20</span></div>
+                <div class="label-box"><span data-i18n="zoom">Zoom / Magnify</span><span id="v-zoom">20</span></div>
                 <input type="range" id="zoomRange" min="0" max="100" value="20">
             </div>
 
             <div class="control-group">
-                <div class="label-box"><span>Orientation</span></div>
+                <div class="label-box"><span data-i18n="orientation">Orientation</span></div>
                 <div class="grid-2">
-                    <button class="dl-btn" id="v-front">FRONT</button>
-                    <button class="dl-btn" id="v-top">TOP</button>
-                    <button class="dl-btn" id="v-left">LEFT</button>
-                    <button class="dl-btn" id="v-right">RIGHT</button>
+                    <button class="dl-btn" id="v-front" data-i18n="front">FRONT</button>
+                    <button class="dl-btn" id="v-top" data-i18n="top">TOP</button>
+                    <button class="dl-btn" id="v-left" data-i18n="left">LEFT</button>
+                    <button class="dl-btn" id="v-right" data-i18n="right">RIGHT</button>
                 </div>
             </div>
 
             <div class="control-group">
-                <div class="label-box"><span>Camera Memory</span></div>
-                <button class="action-btn" id="btnSaveView" style="width:100%; margin-bottom:8px; border-style: dashed; color: var(--accent);">+ SAVE CURRENT VIEW</button>
+                <div class="label-box"><span data-i18n="cameraMem">Camera Memory</span></div>
+                <button class="action-btn" id="btnSaveView" data-i18n="saveView" style="width:100%; margin-bottom:8px; border-style: dashed; color: var(--accent);">+ SAVE CURRENT VIEW</button>
                 <div id="savedViewsList" style="display:flex; flex-direction: column; gap:6px;"></div>
             </div>
 
-            <button class="action-btn primary" onclick="openExportModal()" style="width:100%; margin-top:20px;">EXPORT MENU</button>
-            <button class="action-btn" id="hidePanel" style="width:100%; margin-top:10px; border:none; opacity: 0.4;">MINIMIZE PANEL</button>
+            <button class="action-btn primary" data-i18n="exportMenu" onclick="openExportModal()" style="width:100%; margin-top:20px;">EXPORT MENU</button>
+            <button class="action-btn" id="hidePanel" data-i18n="minimize" style="width:100%; margin-top:10px; border:none; opacity: 0.4;">MINIMIZE PANEL</button>
         </div>
     </div>
 
@@ -478,6 +478,127 @@
         window.openExportModal = () => document.getElementById('exportModal').classList.add('show');
         window.closeExportModal = () => document.getElementById('exportModal').classList.remove('show');
 
+        // ── i18n ──────────────────────────────────────────────────────────
+        const i18n = {
+            en: {
+                initBtn: 'INITIALIZE SCANNER',
+                reupload: 'RE-UPLOAD SOURCE',
+                envBase: 'Environment Base',
+                enable3d: 'ENABLE 3D DEPTH',
+                zIntensity: 'Z-Intensity',
+                enableContour: 'ENABLE CONTOUR',
+                ptGlyphColor: 'Point / Glyph Color',
+                glyphMode: 'Glyph Mode',
+                glyphOpt0: 'Point Cloud',
+                glyphOpt1: 'Custom Glyph (1-10 Chars)',
+                glyphOpt2: 'Glitch Matrix',
+                glyphPh: 'Enter up to 10 chars',
+                catNumbers: 'Numbers (0-9)',
+                catLetters: 'Letters (A-Z)',
+                catSymbols: 'Symbols (!?@...)',
+                pointSize: 'Point Size',
+                samplingStride: 'Sampling Stride',
+                flickerFreq: 'Flicker Freq',
+                diffusion: '4D Diffusion',
+                zoom: 'Zoom / Magnify',
+                orientation: 'Orientation',
+                front: 'FRONT', top: 'TOP', left: 'LEFT', right: 'RIGHT',
+                cameraMem: 'Camera Memory',
+                saveView: '+ SAVE CURRENT VIEW',
+                exportMenu: 'EXPORT MENU',
+                minimize: 'MINIMIZE PANEL',
+                exportBuf: 'EXPORT BUFFER',
+                filenamePh: 'Filename...',
+                pngTitle: 'Transparent Background',
+                jpgTitle: 'Solid Background',
+                svgTitle: 'Transparent Background',
+                recordVideo: 'RECORD VIDEO',
+                cancel: 'CANCEL',
+                viewNamePh: 'View name...',
+                confirm: 'CONFIRM',
+                privacy: 'Privacy Policy',
+                saveViewTitle: 'SAVE VIEW',
+                renameViewTitle: 'RENAME VIEW',
+                analyzing: 'ANALYZING_TOPOLOGY...',
+                downloading: 'DOWNLOADING...',
+                analyzingDepth: 'ANALYZING DEPTH...',
+                extractContours: 'EXTRACTING CONTOURS...',
+                initGif: 'INITIALIZING_GIF_ENGINE...',
+                stopRecording: 'STOP RECORDING',
+            },
+            zh: {
+                initBtn: '初始化扫描仪',
+                reupload: '重新上传图像',
+                envBase: '背景颜色',
+                enable3d: '启用 3D 深度',
+                zIntensity: 'Z 轴强度',
+                enableContour: '启用轮廓模式',
+                ptGlyphColor: '点 / 字形颜色',
+                glyphMode: '字形模式',
+                glyphOpt0: '点云',
+                glyphOpt1: '自定义字形 (1-10字符)',
+                glyphOpt2: '故障矩阵',
+                glyphPh: '输入最多10个字符',
+                catNumbers: '数字 (0-9)',
+                catLetters: '字母 (A-Z)',
+                catSymbols: '符号 (!?@...)',
+                pointSize: '点大小',
+                samplingStride: '采样步长',
+                flickerFreq: '闪烁频率',
+                diffusion: '4D 扩散',
+                zoom: '缩放',
+                orientation: '视角方向',
+                front: '正面', top: '顶部', left: '左侧', right: '右侧',
+                cameraMem: '视角存档',
+                saveView: '+ 保存当前视角',
+                exportMenu: '导出菜单',
+                minimize: '收起面板',
+                exportBuf: '导出文件',
+                filenamePh: '文件名...',
+                pngTitle: '透明背景',
+                jpgTitle: '实色背景',
+                svgTitle: '透明背景',
+                recordVideo: '录制视频',
+                cancel: '取消',
+                viewNamePh: '视角名称...',
+                confirm: '确认',
+                privacy: '隐私政策',
+                saveViewTitle: '保存视角',
+                renameViewTitle: '重命名视角',
+                analyzing: '正在分析图像...',
+                downloading: '下载中...',
+                analyzingDepth: '正在分析深度...',
+                extractContours: '正在提取轮廓...',
+                initGif: '初始化 GIF 引擎...',
+                stopRecording: '停止录制',
+            }
+        };
+        window.currentLang = 'en';
+        window.t = (key) => i18n[window.currentLang][key] || i18n.en[key] || key;
+
+        window.setLanguage = (lang) => {
+            window.currentLang = lang;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                el.textContent = i18n[lang][el.dataset.i18n] || el.textContent;
+            });
+            document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+                el.placeholder = i18n[lang][el.getAttribute('data-i18n-ph')] || el.placeholder;
+            });
+            document.querySelectorAll('[data-i18n-opt]').forEach(el => {
+                el.textContent = i18n[lang][el.getAttribute('data-i18n-opt')] || el.textContent;
+            });
+            document.querySelectorAll('[data-i18n-title]').forEach(el => {
+                el.title = i18n[lang][el.getAttribute('data-i18n-title')] || el.title;
+            });
+            const toggle = document.getElementById('langToggle');
+            if (toggle) toggle.textContent = lang === 'en' ? '中文' : 'EN';
+        };
+
+        document.getElementById('langToggle').onclick = () => {
+            window.setLanguage(window.currentLang === 'en' ? 'zh' : 'en');
+        };
+        // ── end i18n ──────────────────────────────────────────────────────
+
         function showNamePrompt(title, defaultVal, callback) {
             const modal = document.getElementById('nameModal');
             const input = document.getElementById('nameModalInput');
@@ -565,7 +686,7 @@
             
             const stopBtn = document.createElement('button');
             stopBtn.id = 'stopRecBtn';
-            stopBtn.innerText = 'STOP RECORDING';
+            stopBtn.innerText = window.t('stopRecording');
             stopBtn.style.cssText = 'position:fixed; top:40px; left:50%; transform:translateX(-50%); z-index:9999; padding:15px 40px; background:red; color:white; border:2px solid #ffaaaa; border-radius:30px; font-weight:bold; cursor:pointer; font-family:"Press Start 2P", monospace; font-size:12px; animation: pulseRec 1.5s infinite; transition: 0.3s;';
             document.body.appendChild(stopBtn);
 
@@ -605,7 +726,7 @@
             document.getElementById('exportModal').classList.remove('show');
             document.getElementById('loader').style.display = 'flex';
             const loaderTxt = document.getElementById('loaderText');
-            loaderTxt.innerText = 'INITIALIZING_GIF_ENGINE...';
+            loaderTxt.innerText = window.t('initGif');
             let workerUrl;
             try {
                 const workerBlob = await fetch('https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js').then(r => r.blob());
@@ -746,7 +867,7 @@
             const handleUpload = async (e) => {
                 const file = e.target.files[0]; if(!file) return;
                 document.getElementById('loader').style.display = 'flex';
-                document.getElementById('loaderText').innerText = 'INITIALIZING 2D TOPOLOGY...';
+                document.getElementById('loaderText').innerText = window.t('analyzing');
                 
                 const reader = new FileReader();
                 reader.onload = async (ev) => {
@@ -833,13 +954,13 @@
                                 if (d.status === 'progress') {
                                     const p = Math.max(0, Math.min(100, Math.round(d.progress)));
                                     document.getElementById('aiProgressBar').style.width = p + '%';
-                                    document.getElementById('aiProgressText').innerText = `DOWNLOADING 3D CORE... ${p}%`;
+                                    document.getElementById('aiProgressText').innerText = `${window.t('downloading').replace('...','')} 3D CORE... ${p}%`;
                                 }
                             }
                         });
                     }
                     
-                    document.getElementById('aiProgressText').innerText = `ANALYZING DEPTH...`;
+                    document.getElementById('aiProgressText').innerText = window.t('analyzingDepth');
                     await new Promise(r => setTimeout(r, 50)); 
                     const result = await depthEstimator(lastImgSrc);
                     const depthInfo = result.depth;
@@ -871,7 +992,7 @@
 
                     if(!cachedData.edges) {
                         document.getElementById('aiProgressBox').style.display = 'block';
-                        document.getElementById('aiProgressText').innerText = `EXTRACTING CONTOURS...`;
+                        document.getElementById('aiProgressText').innerText = window.t('extractContours');
                         await new Promise(r => setTimeout(r, 50));
 
                         const w = cachedData.width, h = cachedData.height, px = cachedData.pixels;
@@ -953,7 +1074,7 @@
                     rSym: document.getElementById('catSymbols').checked
                 };
 
-                showNamePrompt('SAVE VIEW', defaultName, (viewName) => {
+                showNamePrompt(window.t('saveViewTitle'), defaultName, (viewName) => {
                 window.savedViews[id] = v;
 
                 const cont = document.createElement('div'); cont.style.cssText = 'display:flex; gap:4px;';
@@ -991,12 +1112,12 @@
                     window.camTransition = { active: true, progress: 0, startPos: camera.position.clone(), startTgt: controls.target.clone(), endPos: v.pos, endTgt: v.target };
                 };
 
-                btn.ondblclick = () => showNamePrompt('RENAME VIEW', btn.innerText, (n) => { btn.innerText = n; });
+                btn.ondblclick = () => showNamePrompt(window.t('renameViewTitle'), btn.innerText, (n) => { btn.innerText = n; });
 
                 const edit = document.createElement('button'); edit.className = 'dl-btn'; edit.style.cssText = 'width:30px;';
                 edit.innerText = '✎';
                 edit.title = 'Rename';
-                edit.onclick = () => showNamePrompt('RENAME VIEW', btn.innerText, (n) => { btn.innerText = n; });
+                edit.onclick = () => showNamePrompt(window.t('renameViewTitle'), btn.innerText, (n) => { btn.innerText = n; });
 
                 const del = document.createElement('button'); del.className = 'dl-btn'; del.style.cssText = 'width:30px; border-color:#ff0055; color:#ff0055;';
                 del.innerText = 'X';
@@ -1111,7 +1232,10 @@
         init();
     </script>
     <div style="position:fixed; bottom:20px; right:20px; z-index:10; font-size:11px; color:rgba(255,255,255,0.3);">
-        <a href="privacy.html" target="_blank" style="color:inherit; text-decoration:none; transition: color 0.3s;" onmouseover="this.style.color='rgba(0,242,255,0.7)'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">Privacy Policy</a>
+        <a href="privacy.html" target="_blank" data-i18n="privacy" style="color:inherit; text-decoration:none; transition: color 0.3s;" onmouseover="this.style.color='rgba(0,242,255,0.7)'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">Privacy Policy</a>
+    </div>
+    <div style="position:fixed; bottom:20px; left:20px; z-index:10; font-size:11px; color:rgba(255,255,255,0.3);">
+        <span id="langToggle" style="cursor:pointer; transition: color 0.3s; user-select:none;" onmouseover="this.style.color='rgba(0,242,255,0.7)'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">中文</span>
     </div>
 </body>
 </html>
