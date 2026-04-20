@@ -125,6 +125,88 @@
         .ai-check-label { display:flex; align-items:center; font-size:11px; cursor:pointer; color:var(--accent); font-weight: bold; letter-spacing: 1px; margin-bottom: 8px; }
         .ai-check-label input { margin-right:10px; accent-color: var(--accent); cursor: pointer; width: 14px; height: 14px; }
         .sub-setting { margin-top:10px; padding-left:24px; border-left:1px solid rgba(0,242,255,0.2); display: none; box-sizing: border-box; }
+
+        @media (max-width: 768px) {
+            :root { --panel-w: 100%; }
+
+            .pixel-title {
+                font-size: 32px;
+                letter-spacing: 4px;
+                margin-bottom: 30px;
+            }
+
+            #initBtn {
+                font-size: 13px;
+                padding: 16px 28px;
+                letter-spacing: 2px;
+            }
+
+            .landing-container.active {
+                top: 15px;
+                left: 50%;
+                transform: translate(-50%, 0);
+                align-items: center;
+            }
+
+            .landing-container.active .pixel-title {
+                font-size: 11px;
+                letter-spacing: 1px;
+            }
+
+            .glass-panel {
+                left: 0;
+                right: 0;
+                bottom: 0;
+                top: auto;
+                width: 100%;
+                height: 60vh;
+                border-radius: 16px 16px 0 0;
+                padding: 20px 16px 16px;
+                transform: translateY(calc(60vh + 60px));
+            }
+
+            .glass-panel.show {
+                transform: translateY(0);
+            }
+
+            .glass-panel.hidden {
+                transform: translateY(calc(60vh + 60px));
+            }
+
+            .ui-toggle-trigger {
+                top: auto;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 80px;
+                height: 28px;
+                flex-direction: row;
+            }
+
+            .trigger-line {
+                width: 40px;
+                height: 3px;
+                border-radius: 2px;
+            }
+
+            .modal-box {
+                width: calc(100vw - 40px);
+                padding: 24px 20px;
+            }
+
+            .dl-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            input[type="range"]::-webkit-slider-thumb {
+                width: 22px;
+                height: 22px;
+            }
+
+            input[type="range"] {
+                height: 5px;
+            }
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
 </head>
@@ -147,6 +229,17 @@
     </div>
 
     <div class="ui-toggle-trigger" id="openUI"><div class="trigger-line"></div></div>
+
+    <div class="modal-overlay" id="nameModal">
+        <div class="modal-box" style="width:300px;">
+            <div class="modal-title" id="nameModalTitle">SAVE VIEW</div>
+            <input type="text" id="nameModalInput" class="input-field" placeholder="View name..." style="margin-bottom:16px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <button class="action-btn" id="nameModalCancel" style="border:none; opacity:0.5;">CANCEL</button>
+                <button class="action-btn primary" id="nameModalConfirm">CONFIRM</button>
+            </div>
+        </div>
+    </div>
 
     <div class="modal-overlay" id="exportModal">
         <div class="modal-box">
@@ -385,6 +478,29 @@
         window.openExportModal = () => document.getElementById('exportModal').classList.add('show');
         window.closeExportModal = () => document.getElementById('exportModal').classList.remove('show');
 
+        function showNamePrompt(title, defaultVal, callback) {
+            const modal = document.getElementById('nameModal');
+            const input = document.getElementById('nameModalInput');
+            const confirmBtn = document.getElementById('nameModalConfirm');
+            const cancelBtn = document.getElementById('nameModalCancel');
+            document.getElementById('nameModalTitle').innerText = title;
+            input.value = defaultVal;
+            modal.classList.add('show');
+            setTimeout(() => input.focus(), 100);
+
+            const finish = (confirmed) => {
+                modal.classList.remove('show');
+                confirmBtn.onclick = null;
+                cancelBtn.onclick = null;
+                input.onkeydown = null;
+                if (confirmed && input.value.trim()) callback(input.value.trim());
+                else if (confirmed) callback(defaultVal);
+            };
+            confirmBtn.onclick = () => finish(true);
+            cancelBtn.onclick = () => finish(false);
+            input.onkeydown = (e) => { if (e.key === 'Enter') finish(true); if (e.key === 'Escape') finish(false); };
+        }
+
         // 同步修改 Scene 背景，确保存档及导出正常
         window.setBgColor = (hex) => {
             document.getElementById('bgColorPicker').value = hex;
@@ -533,11 +649,21 @@
             controls.enableDamping = true;
 
             createAmbientStars();
-            updateRandomAtlas(); 
+            updateRandomAtlas();
             animate();
 
             bindUI();
             setupIdleTimer();
+
+            const onResize = () => {
+                const w = window.innerWidth, h = window.innerHeight;
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w, h);
+                renderer.setPixelRatio(window.devicePixelRatio);
+            };
+            window.addEventListener('resize', onResize);
+            window.addEventListener('orientationchange', () => setTimeout(onResize, 200));
         }
 
         function setupIdleTimer() {
@@ -551,6 +677,8 @@
             panel.addEventListener('mousemove', reset);
             panel.addEventListener('mousedown', reset);
             panel.addEventListener('input', reset);
+            panel.addEventListener('touchstart', reset);
+            panel.addEventListener('touchmove', reset);
         }
 
         function updateRandomAtlas() {
@@ -806,9 +934,7 @@
             document.getElementById('btnSaveView').onclick = () => {
                 const id = Date.now();
                 const defaultName = `VIEW ${Object.keys(window.savedViews).length + 1}`;
-                const viewName = prompt("Name this view:", defaultName);
-                if (viewName === null) return; // Cancelled
-                
+
                 const v = {
                     pos: camera.position.clone(), target: controls.target.clone(),
                     psize: document.getElementById('psizeRange').value,
@@ -826,15 +952,17 @@
                     rLet: document.getElementById('catLetters').checked,
                     rSym: document.getElementById('catSymbols').checked
                 };
+
+                showNamePrompt('SAVE VIEW', defaultName, (viewName) => {
                 window.savedViews[id] = v;
 
                 const cont = document.createElement('div'); cont.style.cssText = 'display:flex; gap:4px;';
-                const btn = document.createElement('button'); 
-                btn.className = 'dl-btn'; 
+                const btn = document.createElement('button');
+                btn.className = 'dl-btn';
                 btn.style.flex = '1';
-                btn.innerText = viewName || defaultName;
+                btn.innerText = viewName;
                 btn.title = "Double-click to rename";
-                
+
                 btn.onclick = () => {
                     ['psize','stride','diffuse','depth','zoom','flicker'].forEach(key => {
                         document.getElementById(`${key}Range`).value = v[key];
@@ -863,17 +991,20 @@
                     window.camTransition = { active: true, progress: 0, startPos: camera.position.clone(), startTgt: controls.target.clone(), endPos: v.pos, endTgt: v.target };
                 };
 
-                btn.ondblclick = () => {
-                    const newName = prompt("Rename view:", btn.innerText);
-                    if (newName) btn.innerText = newName;
-                };
+                btn.ondblclick = () => showNamePrompt('RENAME VIEW', btn.innerText, (n) => { btn.innerText = n; });
+
+                const edit = document.createElement('button'); edit.className = 'dl-btn'; edit.style.cssText = 'width:30px;';
+                edit.innerText = '✎';
+                edit.title = 'Rename';
+                edit.onclick = () => showNamePrompt('RENAME VIEW', btn.innerText, (n) => { btn.innerText = n; });
 
                 const del = document.createElement('button'); del.className = 'dl-btn'; del.style.cssText = 'width:30px; border-color:#ff0055; color:#ff0055;';
                 del.innerText = 'X';
                 del.onclick = () => { delete window.savedViews[id]; cont.remove(); };
 
-                cont.appendChild(btn); cont.appendChild(del);
+                cont.appendChild(btn); cont.appendChild(edit); cont.appendChild(del);
                 document.getElementById('savedViewsList').appendChild(cont);
+                }); // end showNamePrompt
             };
 
             const views = {'v-front':[0,0,1], 'v-top':[0,1,0], 'v-left':[-1,0,0], 'v-right':[1,0,0]};
